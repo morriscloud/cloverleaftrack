@@ -4,14 +4,16 @@ using CloverleafTrack.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CloverleafTrack.Migrations
 {
     [DbContext(typeof(CloverleafTrackDataContext))]
-    partial class CloverleafTrackDataContextModelSnapshot : ModelSnapshot
+    [Migration("20210107043141_CreateMeetResult")]
+    partial class CreateMeetResult
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -93,37 +95,41 @@ namespace CloverleafTrack.Migrations
                     b.Property<Guid>("AthleteId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("Feet")
+                    b.Property<string>("EventName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Feet")
                         .HasColumnType("int");
 
-                    b.Property<int?>("FractionalInches")
+                    b.Property<int>("FrationalInches")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Inches")
+                    b.Property<int>("Inches")
                         .HasColumnType("int");
 
                     b.Property<Guid>("MeetId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("Milliseconds")
+                    b.Property<int>("Milliseconds")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Minutes")
+                    b.Property<int>("Minutes")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Seconds")
+                    b.Property<int>("Place")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("TrackEventId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<bool>("RunningEvent")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Seconds")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("AthleteId");
 
                     b.HasIndex("MeetId");
-
-                    b.HasIndex("TrackEventId");
 
                     b.ToTable("Performances");
                 });
@@ -154,29 +160,6 @@ namespace CloverleafTrack.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Seasons");
-                });
-
-            modelBuilder.Entity("CloverleafTrack.Models.TrackEvent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("Gender")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("RelayEvent")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("RunningEvent")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("TrackEvents");
                 });
 
             modelBuilder.Entity("MeetSchool", b =>
@@ -230,17 +213,9 @@ namespace CloverleafTrack.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("CloverleafTrack.Models.TrackEvent", "TrackEvent")
-                        .WithMany("Performances")
-                        .HasForeignKey("TrackEventId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Athlete");
 
                     b.Navigation("Meet");
-
-                    b.Navigation("TrackEvent");
                 });
 
             modelBuilder.Entity("MeetSchool", b =>
@@ -273,11 +248,6 @@ namespace CloverleafTrack.Migrations
             modelBuilder.Entity("CloverleafTrack.Models.Season", b =>
                 {
                     b.Navigation("Meets");
-                });
-
-            modelBuilder.Entity("CloverleafTrack.Models.TrackEvent", b =>
-                {
-                    b.Navigation("Performances");
                 });
 #pragma warning restore 612, 618
         }

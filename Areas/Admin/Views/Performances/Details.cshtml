@@ -1,0 +1,72 @@
+﻿@model CloverleafTrack.Models.Performance
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>Performance</h4>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TrackEvent)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TrackEvent.Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Minutes)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Minutes)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Seconds)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Seconds)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Milliseconds)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Milliseconds)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Feet)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Feet)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Inches)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Inches)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.FractionalInches)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.FractionalInches)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Athlete)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Athlete.Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Meet)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Meet.Name)
+        </dd>
+    </dl>
+</div>
+<div>
+    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
+    <a asp-action="Index">Back to List</a>
+</div>

@@ -1,0 +1,74 @@
+﻿@model CloverleafTrack.Models.Performance
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h1>Edit</h1>
+
+<h4>Performance</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="TrackEventId" class="control-label"></label>
+                <select asp-for="TrackEventId" class="form-control" asp-items="ViewBag.TrackEventId"></select>
+                <span asp-validation-for="TrackEventId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Minutes" class="control-label"></label>
+                <input asp-for="Minutes" class="form-control" />
+                <span asp-validation-for="Minutes" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Seconds" class="control-label"></label>
+                <input asp-for="Seconds" class="form-control" />
+                <span asp-validation-for="Seconds" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Milliseconds" class="control-label"></label>
+                <input asp-for="Milliseconds" class="form-control" />
+                <span asp-validation-for="Milliseconds" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Feet" class="control-label"></label>
+                <input asp-for="Feet" class="form-control" />
+                <span asp-validation-for="Feet" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Inches" class="control-label"></label>
+                <input asp-for="Inches" class="form-control" />
+                <span asp-validation-for="Inches" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="FractionalInches" class="control-label"></label>
+                <input asp-for="FractionalInches" class="form-control" />
+                <span asp-validation-for="FractionalInches" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="AthleteId" class="control-label"></label>
+                <select asp-for="AthleteId" class="form-control" asp-items="ViewBag.AthleteId"></select>
+                <span asp-validation-for="AthleteId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="MeetId" class="control-label"></label>
+                <select asp-for="MeetId" class="form-control" asp-items="ViewBag.MeetId"></select>
+                <span asp-validation-for="MeetId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

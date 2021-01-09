@@ -1,15 +1,12 @@
 using CloverleafTrack.Data;
+using CloverleafTrack.Options;
+
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CloverleafTrack
 {
@@ -25,7 +22,10 @@ namespace CloverleafTrack
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
+            services.Configure<CurrentSeasonOptions>(Configuration.GetSection(CurrentSeasonOptions.Name));
+
+            services.AddControllersWithViews()
+                .AddRazorRuntimeCompilation();
 
             services.AddDbContext<CloverleafTrackDataContext>(options => options.UseSqlServer(Configuration.GetConnectionString("CloverleafTrackDataContext")));
         }
@@ -36,6 +36,7 @@ namespace CloverleafTrack
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseBrowserLink();
             }
             else
             {
@@ -52,6 +53,11 @@ namespace CloverleafTrack
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapControllerRoute(
+                  name: "areas",
+                  pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+                );
+
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");

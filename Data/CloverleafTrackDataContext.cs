@@ -14,6 +14,7 @@ namespace CloverleafTrack.Data
         public DbSet<School> Schools { get; set; }
         public DbSet<Season> Seasons { get; set; }
         public DbSet<Meet> Meets { get; set; }
+        public DbSet<TrackEvent> TrackEvents { get; set; }
         public DbSet<Performance> Performances { get; set; }
     }
 }

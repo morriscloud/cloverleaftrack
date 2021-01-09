@@ -4,14 +4,16 @@ using CloverleafTrack.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CloverleafTrack.Migrations
 {
     [DbContext(typeof(CloverleafTrackDataContext))]
-    partial class CloverleafTrackDataContextModelSnapshot : ModelSnapshot
+    [Migration("20210107134945_MakePerformanceDataNullable")]
+    partial class MakePerformanceDataNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -96,7 +98,7 @@ namespace CloverleafTrack.Migrations
                     b.Property<int?>("Feet")
                         .HasColumnType("int");
 
-                    b.Property<int?>("FractionalInches")
+                    b.Property<int?>("FrationalInches")
                         .HasColumnType("int");
 
                     b.Property<int?>("Inches")

@@ -1,0 +1,55 @@
+﻿@model RosterViewModel
+
+@{
+    ViewData["Title"] = "Roster";
+}
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Roster</h1>
+</div>
+
+<p class="lead">
+    This page lists the athletes that have competed for Cloverleaf Track and Field.
+</p>
+
+<p>
+    Click on the athlete's name to view their personal page for more information!
+</p>
+
+<h1 class="h3">Current Athletes</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Graduation Year</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var athlete in Model.CurrentAthletes)
+        {
+            <tr>
+                <td>@athlete.Name</td>
+                <td>@athlete.GraduationYear</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h1 class="h3">Graduated Athletes</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Graduation Year</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var athlete in Model.GraduatedAthletes)
+        {
+            <tr>
+                <td>@athlete.Name</td>
+                <td>@athlete.GraduationYear</td>
+            </tr>
+        }
+    </tbody>
+</table>

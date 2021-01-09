@@ -1,21 +1,30 @@
-﻿using CloverleafTrack.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+
+using CloverleafTrack.Data;
+using CloverleafTrack.Models;
+using CloverleafTrack.Options;
+using CloverleafTrack.ViewModels;
+
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace CloverleafTrack.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<HomeController> logger;
+        private readonly CloverleafTrackDataContext db;
+        private readonly CurrentSeasonOptions currentSeason;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, CloverleafTrackDataContext db, IOptions<CurrentSeasonOptions> currentSeason)
         {
-            _logger = logger;
+            this.logger = logger;
+            this.db = db;
+            this.currentSeason = currentSeason.Value;
         }
 
         public IActionResult Index()
@@ -23,7 +32,30 @@ namespace CloverleafTrack.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        public async Task<IActionResult> Leaderboard()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> Roster()
+        {
+            var currentAthletes = await db.Athletes
+                .Where(x => x.GraduationYear >= currentSeason.GraduationYear && x.GraduationYear <= (currentSeason.GraduationYear + 3))
+                .OrderBy(x => x.FirstName)
+                .ThenBy(x => x.LastName)
+                .ToListAsync();
+
+            var graduatedAthletes = await db.Athletes
+                .Where(x => x.GraduationYear < currentSeason.GraduationYear)
+                .OrderByDescending(x => x.GraduationYear)
+                .ThenBy(x => x.FirstName)
+                .ThenBy(x => x.LastName)
+                .ToListAsync();
+
+            return View(new RosterViewModel(currentAthletes, graduatedAthletes));
+        }
+
+        public IActionResult Meets()
         {
             return View();
         }

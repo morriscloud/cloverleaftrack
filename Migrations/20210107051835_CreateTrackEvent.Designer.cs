@@ -4,14 +4,16 @@ using CloverleafTrack.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CloverleafTrack.Migrations
 {
     [DbContext(typeof(CloverleafTrackDataContext))]
-    partial class CloverleafTrackDataContextModelSnapshot : ModelSnapshot
+    [Migration("20210107051835_CreateTrackEvent")]
+    partial class CreateTrackEvent
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -93,25 +95,25 @@ namespace CloverleafTrack.Migrations
                     b.Property<Guid>("AthleteId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("Feet")
+                    b.Property<int>("Feet")
                         .HasColumnType("int");
 
-                    b.Property<int?>("FractionalInches")
+                    b.Property<int>("FrationalInches")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Inches")
+                    b.Property<int>("Inches")
                         .HasColumnType("int");
 
                     b.Property<Guid>("MeetId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("Milliseconds")
+                    b.Property<int>("Milliseconds")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Minutes")
+                    b.Property<int>("Minutes")
                         .HasColumnType("int");
 
-                    b.Property<int?>("Seconds")
+                    b.Property<int>("Seconds")
                         .HasColumnType("int");
 
                     b.Property<Guid>("TrackEventId")
@@ -167,9 +169,6 @@ namespace CloverleafTrack.Migrations
 
                     b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("RelayEvent")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("RunningEvent")
                         .HasColumnType("bit");

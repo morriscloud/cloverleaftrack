@@ -1,29 +1,35 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+
 using CloverleafTrack.Data;
 using CloverleafTrack.Models;
 
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
 namespace CloverleafTrack.Controllers
 {
-    public class AthletesController : Controller
+    [Area("Admin")]
+    public class SeasonsController : Controller
     {
-        private readonly CloverleafTrackDataContext _context;
+        private readonly ILogger<SeasonsController> logger;
+        private readonly CloverleafTrackDataContext db;
 
-        public AthletesController(CloverleafTrackDataContext context)
+        public SeasonsController(ILogger<SeasonsController> logger, CloverleafTrackDataContext db)
         {
-            _context = context;
+            this.logger = logger;
+            this.db = db;
         }
 
-        // GET: Athletes
+        // GET: Seasons
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Athletes.ToListAsync());
+            return View(await db.Seasons.ToListAsync());
         }
 
-        // GET: Athletes/Details/5
+        // GET: Seasons/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -31,40 +37,40 @@ namespace CloverleafTrack.Controllers
                 return NotFound();
             }
 
-            var athlete = await _context.Athletes
+            var season = await db.Seasons
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (athlete == null)
+            if (season == null)
             {
                 return NotFound();
             }
 
-            return View(athlete);
+            return View(season);
         }
 
-        // GET: Athletes/Create
+        // GET: Seasons/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Athletes/Create
+        // POST: Seasons/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("FirstName,LastName,Gender,GraduationYear")] Athlete athlete)
+        public async Task<IActionResult> Create([Bind("Id,Name")] Season season)
         {
             if (ModelState.IsValid)
             {
-                athlete.Id = Guid.NewGuid();
-                _context.Add(athlete);
-                await _context.SaveChangesAsync();
+                season.Id = Guid.NewGuid();
+                db.Add(season);
+                await db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            return View(athlete);
+            return View(season);
         }
 
-        // GET: Athletes/Edit/5
+        // GET: Seasons/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -72,22 +78,22 @@ namespace CloverleafTrack.Controllers
                 return NotFound();
             }
 
-            var athlete = await _context.Athletes.FindAsync(id);
-            if (athlete == null)
+            var season = await db.Seasons.FindAsync(id);
+            if (season == null)
             {
                 return NotFound();
             }
-            return View(athlete);
+            return View(season);
         }
 
-        // POST: Athletes/Edit/5
+        // POST: Seasons/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,FirstName,LastName,Gender,GraduationYear")] Athlete athlete)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name")] Season season)
         {
-            if (id != athlete.Id)
+            if (id != season.Id)
             {
                 return NotFound();
             }
@@ -96,12 +102,12 @@ namespace CloverleafTrack.Controllers
             {
                 try
                 {
-                    _context.Update(athlete);
-                    await _context.SaveChangesAsync();
+                    db.Update(season);
+                    await db.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AthleteExists(athlete.Id))
+                    if (!SeasonExists(season.Id))
                     {
                         return NotFound();
                     }
@@ -112,10 +118,10 @@ namespace CloverleafTrack.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(athlete);
+            return View(season);
         }
 
-        // GET: Athletes/Delete/5
+        // GET: Seasons/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -123,30 +129,30 @@ namespace CloverleafTrack.Controllers
                 return NotFound();
             }
 
-            var athlete = await _context.Athletes
+            var season = await db.Seasons
                 .FirstOrDefaultAsync(m => m.Id == id);
-            if (athlete == null)
+            if (season == null)
             {
                 return NotFound();
             }
 
-            return View(athlete);
+            return View(season);
         }
 
-        // POST: Athletes/Delete/5
+        // POST: Seasons/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var athlete = await _context.Athletes.FindAsync(id);
-            _context.Athletes.Remove(athlete);
-            await _context.SaveChangesAsync();
+            var season = await db.Seasons.FindAsync(id);
+            db.Seasons.Remove(season);
+            await db.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool AthleteExists(Guid id)
+        private bool SeasonExists(Guid id)
         {
-            return _context.Athletes.Any(e => e.Id == id);
+            return db.Seasons.Any(e => e.Id == id);
         }
     }
 }
