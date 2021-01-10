@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Web;
 
 namespace CloverleafTrack.Models
 {
@@ -13,6 +14,8 @@ namespace CloverleafTrack.Models
         public int GraduationYear { get; set; }
         [NotMapped]
         public string Name => $"{FirstName} {LastName}";
+        [NotMapped]
+        public string UrlName => $"{HttpUtility.UrlEncode(FirstName.ToLower())}-{HttpUtility.UrlEncode(LastName.ToLower())}";
 
         public List<Performance> Performances { get; set; } = new List<Performance>();
     }

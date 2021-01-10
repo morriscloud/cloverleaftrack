@@ -1,13 +1,13 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-
-using CloverleafTrack.Data;
+﻿using CloverleafTrack.Data;
 using CloverleafTrack.Models;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CloverleafTrack.Controllers
 {
@@ -26,7 +26,7 @@ namespace CloverleafTrack.Controllers
         // GET: TrackEvents
         public async Task<IActionResult> Index()
         {
-            return View(await db.TrackEvents.OrderBy(x => x.Gender).ThenBy(x => x.Name).ToListAsync());
+            return View(await db.TrackEvents.OrderBy(x => x.Gender).ThenBy(x => x.SortOrder).ToListAsync());
         }
 
         // GET: TrackEvents/Details/5
@@ -58,7 +58,7 @@ namespace CloverleafTrack.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name,Gender,RunningEvent,RelayEvent")] TrackEvent trackEvent)
+        public async Task<IActionResult> Create([Bind("Name,Gender,RunningEvent,RelayEvent,SortOrder")] TrackEvent trackEvent)
         {
             if (ModelState.IsValid)
             {
@@ -91,7 +91,7 @@ namespace CloverleafTrack.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name,Gender,RunningEvent,RelayEvent")] TrackEvent trackEvent)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name,Gender,RunningEvent,RelayEvent,SortOrder")] TrackEvent trackEvent)
         {
             if (id != trackEvent.Id)
             {

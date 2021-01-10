@@ -1,14 +1,14 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-
-using CloverleafTrack.Data;
+﻿using CloverleafTrack.Data;
 using CloverleafTrack.Models;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CloverleafTrack.Controllers
 {
@@ -27,7 +27,15 @@ namespace CloverleafTrack.Controllers
         // GET: Performances
         public async Task<IActionResult> Index()
         {
-            var cloverleafTrackDataContext = db.Performances.Include(p => p.Athlete).Include(p => p.Meet).Include(p => p.TrackEvent);
+            var cloverleafTrackDataContext = db.Performances
+                .Include(p => p.Athlete)
+                .Include(p => p.Meet)
+                .Include(p => p.TrackEvent)
+                .OrderBy(x => x.Athlete.FirstName)
+                .ThenBy(x => x.Athlete.LastName)
+                .ThenBy(x => x.TrackEvent.SortOrder)
+                .ThenBy(x => x.Meet.Date);
+
             return View(await cloverleafTrackDataContext.ToListAsync());
         }
 
@@ -44,6 +52,7 @@ namespace CloverleafTrack.Controllers
                 .Include(p => p.Meet)
                 .Include(p => p.TrackEvent)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
             if (performance == null)
             {
                 return NotFound();
@@ -55,7 +64,7 @@ namespace CloverleafTrack.Controllers
         // GET: Performances/Create
         public IActionResult Create()
         {
-            ViewData[nameof(Performance.TrackEventId)] = new SelectList(db.TrackEvents.OrderBy(x => x.Gender).ThenBy(x => x.Name), nameof(TrackEvent.Id), nameof(TrackEvent.DisplayName));
+            ViewData[nameof(Performance.TrackEventId)] = new SelectList(db.TrackEvents.OrderBy(x => x.Gender).ThenBy(x => x.SortOrder), nameof(TrackEvent.Id), nameof(TrackEvent.DisplayName));
             ViewData[nameof(Performance.AthleteId)] = new SelectList(db.Athletes.OrderBy(x => x.FirstName).ThenBy(x => x.LastName), nameof(Athlete.Id), nameof(Athlete.Name));
             ViewData[nameof(Performance.MeetId)] = new SelectList(db.Meets.OrderBy(x => x.Name), nameof(Meet.Id), nameof(Meet.Name));
             return View();
@@ -75,7 +84,7 @@ namespace CloverleafTrack.Controllers
                 await db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData[nameof(Performance.TrackEventId)] = new SelectList(db.TrackEvents.OrderBy(x => x.Gender).ThenBy(x => x.Name), nameof(TrackEvent.Id), nameof(TrackEvent.DisplayName), performance.TrackEventId);
+            ViewData[nameof(Performance.TrackEventId)] = new SelectList(db.TrackEvents.OrderBy(x => x.Gender).ThenBy(x => x.SortOrder), nameof(TrackEvent.Id), nameof(TrackEvent.DisplayName), performance.TrackEventId);
             ViewData[nameof(Performance.AthleteId)] = new SelectList(db.Athletes.OrderBy(x => x.FirstName).ThenBy(x => x.LastName), nameof(Athlete.Id), nameof(Athlete.Name), performance.AthleteId);
             ViewData[nameof(Performance.MeetId)] = new SelectList(db.Meets.OrderBy(x => x.Name), nameof(Meet.Id), nameof(Meet.Name), performance.MeetId);
             return View(performance);
@@ -98,7 +107,7 @@ namespace CloverleafTrack.Controllers
             {
                 return NotFound();
             }
-            ViewData[nameof(Performance.TrackEventId)] = new SelectList(db.TrackEvents.OrderBy(x => x.Gender).ThenBy(x => x.Name), nameof(TrackEvent.Id), nameof(TrackEvent.DisplayName), performance.TrackEventId);
+            ViewData[nameof(Performance.TrackEventId)] = new SelectList(db.TrackEvents.OrderBy(x => x.Gender).ThenBy(x => x.SortOrder), nameof(TrackEvent.Id), nameof(TrackEvent.DisplayName), performance.TrackEventId);
             ViewData[nameof(Performance.AthleteId)] = new SelectList(db.Athletes.OrderBy(x => x.FirstName).ThenBy(x => x.LastName), nameof(Athlete.Id), nameof(Athlete.Name), performance.AthleteId);
             ViewData[nameof(Performance.MeetId)] = new SelectList(db.Meets.OrderBy(x => x.Name), nameof(Meet.Id), nameof(Meet.Name), performance.MeetId);
             return View(performance);
@@ -136,7 +145,7 @@ namespace CloverleafTrack.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData[nameof(Performance.TrackEventId)] = new SelectList(db.TrackEvents.OrderBy(x => x.Gender).ThenBy(x => x.Name), nameof(TrackEvent.Id), nameof(TrackEvent.DisplayName), performance.TrackEventId);
+            ViewData[nameof(Performance.TrackEventId)] = new SelectList(db.TrackEvents.OrderBy(x => x.Gender).ThenBy(x => x.SortOrder), nameof(TrackEvent.Id), nameof(TrackEvent.DisplayName), performance.TrackEventId);
             ViewData[nameof(Performance.AthleteId)] = new SelectList(db.Athletes.OrderBy(x => x.FirstName).ThenBy(x => x.LastName), nameof(Athlete.Id), nameof(Athlete.Name), performance.AthleteId);
             ViewData[nameof(Performance.MeetId)] = new SelectList(db.Meets.OrderBy(x => x.Name), nameof(Meet.Id), nameof(Meet.Name), performance.MeetId);
             return View(performance);

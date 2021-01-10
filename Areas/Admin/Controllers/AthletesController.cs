@@ -1,13 +1,13 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-
-using CloverleafTrack.Data;
+﻿using CloverleafTrack.Data;
 using CloverleafTrack.Models;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CloverleafTrack.Controllers
 {

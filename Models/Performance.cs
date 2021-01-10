@@ -26,33 +26,70 @@ namespace CloverleafTrack.Models
                 {
                     if (TrackEvent.RunningEvent)
                     {
-                        int minutes;
-                        if (Minutes is null)
-                        {
-                            minutes = 0;
-                        }
-                        else
-                        {
-                            minutes = Minutes.Value;
-                        }
+                        var minutes = (float)Minutes.GetValueOrDefault(0);
+                        var seconds = (float)Seconds.GetValueOrDefault(0);
+                        var milliseconds = (float)Milliseconds.GetValueOrDefault(0);
 
-                        return $"{minutes:00}:{Seconds:00}.{Milliseconds:00}";
+                        return $"{minutes:00}:{seconds:00}.{milliseconds:00}";
                     }
+
+                    var feet = (float)Feet.GetValueOrDefault(0);
+                    var inches = (float)Inches.GetValueOrDefault(0);
+                    var fractionalInches = (float)FractionalInches.GetValueOrDefault(0);
 
                     if (TrackEvent.Name.Contains("Discus"))
                     {
-                        return $"{Feet:000}-{Inches:00}.{FractionalInches:00}";
+                        return $"{feet:000}-{inches:00}.{fractionalInches:00}";
                     }
                     else
                     {
-                        return $"{Feet:00}-{Inches:00}.{FractionalInches:00}";
+                        return $"{feet:00}-{inches:00}.{fractionalInches:00}";
                     }
                 }
 
                 return string.Empty;
             }
         }
+        [NotMapped]
+        public float TotalSeconds
+        {
+            get
+            {
+                if (TrackEvent is not null)
+                {
+                    if (TrackEvent.RunningEvent)
+                    {
+                        var minutes = (float)Minutes.GetValueOrDefault(0);
+                        var seconds = (float)Seconds.GetValueOrDefault(0);
+                        var milliseconds = (float)Milliseconds.GetValueOrDefault(0);
 
+                        return (minutes * 60f) + seconds + (milliseconds / 100f);
+                    }
+                }
+
+                return float.MaxValue;
+            }
+        }
+        [NotMapped]
+        public float TotalInches
+        {
+            get
+            {
+                if (TrackEvent is not null)
+                {
+                    if (!TrackEvent.RunningEvent)
+                    {
+                        var feet = (float)Feet.GetValueOrDefault(0);
+                        var inches = (float)Inches.GetValueOrDefault(0);
+                        var fractionalInches = (float)FractionalInches.GetValueOrDefault(0);
+
+                        return (feet * 12f) + inches + (fractionalInches / 100f);
+                    }
+                }
+
+                return float.MaxValue;
+            }
+        }
         public TrackEvent TrackEvent { get; set; }
         public Athlete Athlete { get; set; }
         public Meet Meet { get; set; }

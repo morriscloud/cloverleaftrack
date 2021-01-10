@@ -11,6 +11,7 @@ namespace CloverleafTrack.Models
         public bool Gender { get; set; }
         public bool RunningEvent { get; set; }
         public bool RelayEvent { get; set; }
+        public int SortOrder { get; set; }
         [NotMapped]
         public string DisplayName
         {
