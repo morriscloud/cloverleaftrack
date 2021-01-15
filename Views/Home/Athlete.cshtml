@@ -4,54 +4,123 @@
     ViewData["Title"] = Model.Athlete.Name;
 }
 
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">@Model.Athlete.Name</h1>
-    <p class="lead">Class of @Model.Athlete.GraduationYear</p>
+<div class="border-bottom pt-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-area="" asp-controller="Home" asp-action="Roster">Roster</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">
+                @Model.Athlete.Name
+            </li>
+        </ol>
+    </nav>
 </div>
 
-<h1 class="h3">Lifetime Bests</h1>
-<table class="table table-hover table-striped">
-    <thead>
-    <tr>
-        <th>Event</th>
-        <th>Performance</th>
-        <th>Date</th>
-        <th>Meet</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var lifetimePr in Model.LifetimePrs)
-    {
-        <tr>
-            <th>@lifetimePr.Key.Name</th>
-            <td>@lifetimePr.Value.PerformanceFormatted</td>
-            <td>@lifetimePr.Value.Meet.Date.ToShortDateString()</td>
-            <td>@lifetimePr.Value.Meet.Name</td>
-        </tr>
-    }
-    </tbody>
-</table>
+<div class="border-bottom mb-3">
+    <h1 class="display-1">
+        @Model.Athlete.Name
+    </h1>
+    <p class="lead">
+        Class of @Model.Athlete.GraduationYear
+    </p>
+</div>
 
-<h1 class="h3">Meet Results</h1>
+<div class="container-fluid p-0">
+    <div class="row">
+        <div class="col-lg-8">
+            @foreach (var eventPerformance in Model.EventPerformances)
+            {
+                <div class="shadow rounded bg-light p-3 pb-0 mb-3">
+                    <h3 class="border-bottom pb-1">
+                        @eventPerformance.Key.Name
+                    </h3>
+                    <table class="table table-hover table-striped table-sm event-performances">
+                        <caption>@Model.Athlete.Name's @eventPerformance.Key.Name Results</caption>
+                        <thead class="table-dark">
+                        <tr>
+                            <th class="col-3">Performance</th>
+                            <th class="col-3">Date</th>
+                            <th>Meet</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var performance in eventPerformance.Value)
+                        {
+                            <tr>
+                                <td class="text-nowrap align-middle">@performance.PerformanceFormatted</td>
+                                <td class="align-middle">@performance.Meet.Date.ToShortDateString()</td>
+                                <td class="align-middle">@performance.Meet.Name</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+        <div class="col-lg-4">
+            <div class="shadow rounded bg-light p-3 mb-3">
+                <h3 class="border-bottom pb-1">
+                    Season PRs
+                </h3>
+                @foreach (var seasonGroup in Model.SeasonPrs)
+                {
+                    <h4 class="border-bottom pb-1">
+                        @seasonGroup.Key.Name Season
+                    </h4>
+                    <table class="table table-hover table-striped table-sm">
+                        <caption>@Model.Athlete.Name's @seasonGroup.Key.Name Season PRs</caption>
+                        <thead class="table-dark">
+                        <tr>
+                            <th class="col-3">Event</th>
+                            <th class="col-2">Performance</th>
+                            <th class="col-2">Date</th>
+                            <th>Meet</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var seasonPr in seasonGroup.Value)
+                        {
+                            <tr>
+                                <th class="align-middle">@seasonPr.Key.Name</th>
+                                <td class="text-nowrap align-middle">@seasonPr.Value.PerformanceFormatted</td>
+                                <td class="align-middle">@seasonPr.Value.Meet.Date.ToShortDateString()</td>
+                                <td class="align-middle">@seasonPr.Value.Meet.Name</td>
+                            </tr>
+                        }
+                         </tbody>
+                    </table>
+                }
+            </div>
 
-@foreach (var meetResult in Model.MeetResults)
-{
-    <h1 class="h4">@meetResult.Key.Name - @meetResult.Key.Date.ToShortDateString()</h1>
-    <table class="table table-hover table-striped">
-        <thead>
-        <tr>
-            <th>Event</th>
-            <th>Performance</th>
-        </tr>
-        </thead>
-        <tbody>
-        @foreach (var performance in meetResult.Value)
-        {
-            <tr>
-                <td>@performance.TrackEvent.Name</td>
-                <td>@performance.PerformanceFormatted</td>
-            </tr>
-        }
-        </tbody>
-    </table>
-}
+            <div class="shadow rounded bg-light p-3">
+                <h3 class="border-bottom pb-1">Lifetime PRs</h3>
+                <table class="table table-hover table-striped table-sm">
+                    <caption>@Model.Athlete.Name's Lifetime PRs</caption>
+                    <thead class="table-dark">
+                    <tr>
+                        <th class="col-3">Event</th>
+                        <th class="col-2">Performance</th>
+                        <th class="col-2">Date</th>
+                        <th>Meet</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var lifetimePr in Model.LifetimePrs)
+                    {
+                        <tr>
+                            <th class="align-middle">@lifetimePr.Key.Name</th>
+                            <td class="text-nowrap align-middle">@lifetimePr.Value.PerformanceFormatted</td>
+                            <td class="align-middle">@lifetimePr.Value.Meet.Date.ToShortDateString()</td>
+                            <td class="align-middle">@lifetimePr.Value.Meet.Name</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

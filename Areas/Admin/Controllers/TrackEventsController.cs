@@ -1,35 +1,28 @@
-﻿using CloverleafTrack.Data;
-using CloverleafTrack.Models;
-
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-
-using System;
+﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CloverleafTrack.Data;
+using CloverleafTrack.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
-namespace CloverleafTrack.Controllers
+namespace CloverleafTrack.Areas.Admin.Controllers
 {
     [Area("Admin")]
     public class TrackEventsController : Controller
     {
-        private readonly ILogger<TrackEventsController> logger;
         private readonly CloverleafTrackDataContext db;
 
-        public TrackEventsController(ILogger<TrackEventsController> logger, CloverleafTrackDataContext db)
+        public TrackEventsController(CloverleafTrackDataContext db)
         {
-            this.logger = logger;
             this.db = db;
         }
 
-        // GET: TrackEvents
         public async Task<IActionResult> Index()
         {
-            return View(await db.TrackEvents.OrderBy(x => x.Gender).ThenBy(x => x.SortOrder).ToListAsync());
+            return View(await db.TrackEvents.OrderBy(t => t.Gender).ThenBy(t => t.SortOrder).ToListAsync());
         }
 
-        // GET: TrackEvents/Details/5
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -38,7 +31,8 @@ namespace CloverleafTrack.Controllers
             }
 
             var trackEvent = await db.TrackEvents
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(t => t.Id == id);
+            
             if (trackEvent == null)
             {
                 return NotFound();
@@ -47,30 +41,26 @@ namespace CloverleafTrack.Controllers
             return View(trackEvent);
         }
 
-        // GET: TrackEvents/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: TrackEvents/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name,Gender,RunningEvent,RelayEvent,SortOrder")] TrackEvent trackEvent)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                trackEvent.Id = Guid.NewGuid();
-                db.Add(trackEvent);
-                await db.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                return View(trackEvent);
             }
-            return View(trackEvent);
+
+            trackEvent.Id = Guid.NewGuid();
+            db.Add(trackEvent);
+            await db.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: TrackEvents/Edit/5
         public async Task<IActionResult> Edit(Guid? id)
         {
             if (id == null)
@@ -79,16 +69,15 @@ namespace CloverleafTrack.Controllers
             }
 
             var trackEvent = await db.TrackEvents.FindAsync(id);
+            
             if (trackEvent == null)
             {
                 return NotFound();
             }
+            
             return View(trackEvent);
         }
 
-        // POST: TrackEvents/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, [Bind("Id,Name,Gender,RunningEvent,RelayEvent,SortOrder")] TrackEvent trackEvent)
@@ -98,30 +87,28 @@ namespace CloverleafTrack.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                try
-                {
-                    db.Update(trackEvent);
-                    await db.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TrackEventExists(trackEvent.Id))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+                return View(trackEvent);
             }
-            return View(trackEvent);
+
+            try
+            {
+                db.Update(trackEvent);
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!TrackEventExists(trackEvent.Id))
+                {
+                    return NotFound();
+                }
+
+                throw;
+            }
+            return RedirectToAction(nameof(Index));
         }
 
-        // GET: TrackEvents/Delete/5
         public async Task<IActionResult> Delete(Guid? id)
         {
             if (id == null)
@@ -130,7 +117,8 @@ namespace CloverleafTrack.Controllers
             }
 
             var trackEvent = await db.TrackEvents
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(t => t.Id == id);
+            
             if (trackEvent == null)
             {
                 return NotFound();
@@ -139,7 +127,6 @@ namespace CloverleafTrack.Controllers
             return View(trackEvent);
         }
 
-        // POST: TrackEvents/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
@@ -152,7 +139,7 @@ namespace CloverleafTrack.Controllers
 
         private bool TrackEventExists(Guid id)
         {
-            return db.TrackEvents.Any(e => e.Id == id);
+            return db.TrackEvents.Any(t => t.Id == id);
         }
     }
 }

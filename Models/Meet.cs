@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CloverleafTrack.Models
 {
@@ -11,10 +12,11 @@ namespace CloverleafTrack.Models
         public DateTime Date { get; set; }
         public string Name { get; set; }
         public Guid SeasonId { get; set; }
+        [NotMapped] public string UrlName => "";
 
         public Season Season { get; set; }
         public MeetResult MeetResult { get; set; }
-        public List<School> Schools { get; set; } = new List<School>();
-        public List<Performance> Performances { get; set; } = new List<Performance>();
+        public List<School> Schools { get; set; } = new();
+        public List<Performance> Performances { get; set; } = new();
     }
 }

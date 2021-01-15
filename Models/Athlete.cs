@@ -12,11 +12,10 @@ namespace CloverleafTrack.Models
         public string LastName { get; set; }
         public bool Gender { get; set; }
         public int GraduationYear { get; set; }
-        [NotMapped]
-        public string Name => $"{FirstName} {LastName}";
-        [NotMapped]
-        public string UrlName => $"{HttpUtility.UrlEncode(FirstName.ToLower())}-{HttpUtility.UrlEncode(LastName.ToLower())}";
+        [NotMapped] public string Name => $"{FirstName} {LastName}";
 
-        public List<Performance> Performances { get; set; } = new List<Performance>();
+        [NotMapped] public string UrlName => $"{HttpUtility.UrlEncode(FirstName.ToLower())}-{HttpUtility.UrlEncode(LastName.ToLower())}";
+
+        public List<Performance> Performances { get; set; } = new();
     }
 }

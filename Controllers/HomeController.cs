@@ -5,7 +5,6 @@ using CloverleafTrack.ViewModels;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using MoreLinq;
@@ -20,13 +19,11 @@ namespace CloverleafTrack.Controllers
     [Route("")]
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> logger;
         private readonly CloverleafTrackDataContext db;
         private readonly CurrentSeasonOptions currentSeason;
 
-        public HomeController(ILogger<HomeController> logger, CloverleafTrackDataContext db, IOptions<CurrentSeasonOptions> currentSeason)
+        public HomeController(CloverleafTrackDataContext db, IOptions<CurrentSeasonOptions> currentSeason)
         {
-            this.logger = logger;
             this.db = db;
             this.currentSeason = currentSeason.Value;
         }
@@ -38,7 +35,7 @@ namespace CloverleafTrack.Controllers
         }
 
         [Route("leaderboard")]
-        public async Task<IActionResult> Leaderboard()
+        public IActionResult Leaderboard()
         {
             return View();
         }
@@ -47,22 +44,22 @@ namespace CloverleafTrack.Controllers
         public async Task<IActionResult> Roster()
         {
             var currentAthletes = await db.Athletes
-                .Where(x => x.GraduationYear >= currentSeason.GraduationYear && x.GraduationYear <= (currentSeason.GraduationYear + 3))
-                .OrderBy(x => x.FirstName)
-                .ThenBy(x => x.LastName)
+                .Where(a => a.GraduationYear >= currentSeason.GraduationYear && a.GraduationYear <= (currentSeason.GraduationYear + 3))
+                .OrderBy(a => a.FirstName)
+                .ThenBy(a => a.LastName)
                 .ToListAsync();
 
             var graduatedAthletes = await db.Athletes
-                .Where(x => x.GraduationYear < currentSeason.GraduationYear)
-                .OrderByDescending(x => x.GraduationYear)
-                .ThenBy(x => x.FirstName)
-                .ThenBy(x => x.LastName)
+                .Where(a => a.GraduationYear < currentSeason.GraduationYear)
+                .OrderByDescending(a => a.GraduationYear)
+                .ThenBy(a => a.FirstName)
+                .ThenBy(a => a.LastName)
                 .ToListAsync();
 
             return View(new RosterViewModel(currentAthletes, graduatedAthletes));
         }
 
-        [Route("athlete/{name}")]
+        [Route("roster/{name}")]
         public async Task<IActionResult> Athlete(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -75,11 +72,12 @@ namespace CloverleafTrack.Controllers
             var lastName = splitName[1];
 
             var athlete = await db.Athletes
-                .Include(athlete => athlete.Performances)
-                .ThenInclude(performance => performance.TrackEvent)
-                .Include(athlete => athlete.Performances)
-                .ThenInclude(performance => performance.Meet)
-                .FirstOrDefaultAsync(athlete => athlete.FirstName == firstName && athlete.LastName == lastName);
+                .Include(a => a.Performances)
+                .ThenInclude(p => p.TrackEvent)
+                .Include(a => a.Performances)
+                .ThenInclude(p => p.Meet)
+                .ThenInclude(m => m.Season)
+                .FirstOrDefaultAsync(a => a.FirstName == firstName && a.LastName == lastName);
 
             if (athlete == null)
             {
@@ -87,26 +85,34 @@ namespace CloverleafTrack.Controllers
             }
 
             var lifetimePrs = new Dictionary<TrackEvent, Performance>();
-            var groupedPerformances = athlete.Performances.GroupBy(x => x.TrackEvent).OrderBy(x => x.Key.SortOrder);
+            var groupedPerformances = athlete.Performances.GroupBy(p => p.TrackEvent).OrderBy(g => g.Key.SortOrder);
             foreach (var group in groupedPerformances)
             {
-                Performance best;
-                if (group.Key.RunningEvent)
-                {
-                    best = group.MinBy(x => x.TotalSeconds).First();
-                    lifetimePrs.Add(group.Key, best);
-                }
-                else
-                {
-                    best = group.MaxBy(x => x.TotalInches).First();
-                    lifetimePrs.Add(group.Key, best);
-                }
+                var best = @group.Key.RunningEvent ? @group.MinBy(p => p.TotalSeconds).First() : @group.MaxBy(p => p.TotalInches).First();
+                lifetimePrs.Add(group.Key, best);
             }
 
-            var performancesGroupedByMeet = athlete.Performances.GroupBy(x => x.Meet).OrderByDescending(x => x.Key.Date);
-            var meetResults = performancesGroupedByMeet.ToDictionary(group => group.Key, group => group.OrderBy(x => x.TrackEvent.SortOrder).ToList());
+            var seasonPrs = new Dictionary<Season, Dictionary<TrackEvent, Performance>>();
+            var performancesGroupedBySeason = athlete.Performances.GroupBy(p => p.Meet.Season).OrderByDescending(g => g.Key.Name);
+            foreach (var group in performancesGroupedBySeason)
+            {
+                var seasonBestPerformances = new Dictionary<TrackEvent, Performance>();
+                var seasonPerformancesGroupedByTrackEvent = group.GroupBy(p => p.TrackEvent).OrderBy(g => g.Key.SortOrder);
+                foreach (var secondGroup in seasonPerformancesGroupedByTrackEvent)
+                {
+                    var best = secondGroup.Key.RunningEvent ? secondGroup.MinBy(p => p.TotalSeconds).First() : secondGroup.MaxBy(p => p.TotalInches).First();
+                    seasonBestPerformances.Add(secondGroup.Key, best);
+                }
+                
+                seasonPrs.Add(group.Key, seasonBestPerformances);
+            }
 
-            return View(new AthleteViewModel(athlete, lifetimePrs, meetResults));
+            var performancesGroupedByEvent = athlete.Performances.GroupBy(p => p.TrackEvent).OrderBy(g => g.Key.SortOrder);
+            var eventPerformances = performancesGroupedByEvent.ToDictionary(eventGrouping => eventGrouping.Key, eventGrouping => eventGrouping.Key.RunningEvent
+                ? eventGrouping.OrderBy(x => x.TotalSeconds)
+                : eventGrouping.OrderByDescending(p => p.TotalInches));
+
+            return View(new AthleteViewModel(athlete, lifetimePrs, seasonPrs, eventPerformances));
         }
 
         [Route("meets")]
