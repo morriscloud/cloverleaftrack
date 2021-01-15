@@ -1,4 +1,9 @@
-﻿using CloverleafTrack.Data;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+
+using CloverleafTrack.Data;
 using CloverleafTrack.Models;
 using CloverleafTrack.Options;
 using CloverleafTrack.ViewModels;
@@ -8,11 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using MoreLinq;
-
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace CloverleafTrack.Controllers
 {
@@ -35,9 +35,58 @@ namespace CloverleafTrack.Controllers
         }
 
         [Route("leaderboard")]
-        public IActionResult Leaderboard()
+        public async Task<IActionResult> Leaderboard()
         {
-            return View();
+            var boysEvents = await db.TrackEvents.Where(t => !t.Gender).OrderBy(t => t.SortOrder).ToListAsync();
+            var girlsEvents = await db.TrackEvents.Where(t => t.Gender).OrderBy(t => t.SortOrder).ToListAsync();
+
+            var boysEventsWithTopPerformance = new Dictionary<TrackEvent, Performance>();
+            var girlsEventsWithTopPerformance = new Dictionary<TrackEvent, Performance>();
+
+            foreach (var ev in boysEvents)
+            {
+                var performances = await db.Performances
+                    .Include(p => p.Athlete)
+                    .Include(p => p.Meet)
+                    .Where(p => p.TrackEventId == ev.Id)
+                    .ToListAsync();
+
+                Performance performance;
+                if (ev.RunningEvent)
+                {
+                    performance = performances.MinBy(p => p.TotalSeconds).FirstOrDefault();
+                }
+                else
+                {
+                    performance = performances.MaxBy(p => p.TotalInches).FirstOrDefault();
+                }
+
+                boysEventsWithTopPerformance.Add(ev, performance);
+            }
+
+            foreach (var ev in girlsEvents)
+            {
+                var performances = await db.Performances
+                    .Include(p => p.Athlete)
+                    .Include(p => p.Meet)
+                    .Where(p => p.TrackEventId == ev.Id)
+                    .ToListAsync();
+
+                Performance performance;
+                if (ev.RunningEvent)
+                {
+                    performance = performances.MinBy(p => p.TotalSeconds).FirstOrDefault();
+                }
+                else
+                {
+                    performance = performances.MaxBy(p => p.TotalInches).FirstOrDefault();
+                }
+
+                girlsEventsWithTopPerformance.Add(ev, performance);
+            }
+
+            var viewModel = new LeaderboardViewModel(boysEventsWithTopPerformance, girlsEventsWithTopPerformance);
+            return View(viewModel);
         }
 
         [Route("roster")]
@@ -103,7 +152,7 @@ namespace CloverleafTrack.Controllers
                     var best = secondGroup.Key.RunningEvent ? secondGroup.MinBy(p => p.TotalSeconds).First() : secondGroup.MaxBy(p => p.TotalInches).First();
                     seasonBestPerformances.Add(secondGroup.Key, best);
                 }
-                
+
                 seasonPrs.Add(group.Key, seasonBestPerformances);
             }
 

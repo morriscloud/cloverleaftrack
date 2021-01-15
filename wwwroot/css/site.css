@@ -97,3 +97,10 @@ table.event-performances tbody tr:first-child td:first-child::after {
     
 }
 
+a {
+    color: #525252;
+}
+
+a:hover {
+    color: #333;
+}
