@@ -53,7 +53,11 @@
                             <tr>
                                 <td class="text-nowrap align-middle">@performance.PerformanceFormatted</td>
                                 <td class="align-middle">@performance.Meet.Date.ToShortDateString()</td>
-                                <td class="align-middle">@performance.Meet.Name</td>
+                                <td class="align-middle">
+                                    <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@performance.Meet.UrlName">
+                                        @performance.Meet.Name
+                                    </a>
+                                </td>
                             </tr>
                         }
                         </tbody>
@@ -88,7 +92,11 @@
                                 <th class="align-middle">@seasonPr.Key.Name</th>
                                 <td class="text-nowrap align-middle">@seasonPr.Value.PerformanceFormatted</td>
                                 <td class="align-middle">@seasonPr.Value.Meet.Date.ToShortDateString()</td>
-                                <td class="align-middle">@seasonPr.Value.Meet.Name</td>
+                                <td class="align-middle">
+                                    <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@seasonPr.Value.Meet.UrlName">
+                                        @seasonPr.Value.Meet.Name
+                                    </a>
+                                </td>
                             </tr>
                         }
                          </tbody>
@@ -115,7 +123,11 @@
                             <th class="align-middle">@lifetimePr.Key.Name</th>
                             <td class="text-nowrap align-middle">@lifetimePr.Value.PerformanceFormatted</td>
                             <td class="align-middle">@lifetimePr.Value.Meet.Date.ToShortDateString()</td>
-                            <td class="align-middle">@lifetimePr.Value.Meet.Name</td>
+                            <td class="align-middle">
+                                <a asp-area="" asp-controller="Home" asp-action="Meets" asp-route-meetName="@lifetimePr.Value.Meet.UrlName">
+                                    @lifetimePr.Value.Meet.Name
+                                </a>
+                            </td>
                         </tr>
                     }
                     </tbody>

@@ -26,41 +26,77 @@
 <div class="container-fluid p-0">
     <div class="row">
         <div class="col-sm-6 ml-1 mr-1">
-            <div class="row">
-                <div class="container-fluid">
-                    <div class="row">
-                        <h3 class="border-bottom pb-1 text-center">
-                            Boys
-                        </h3>
-                    </div>
-                    <div class="row">
-                        @foreach (var ev in Model.BoysEvents)
-                        {
-                            <div class="col-sm-2 m-1 border shadow rounded bg-light p-3">
-                                @ev.Key.Name
-                            </div>
-                        }
-                    </div>
-                </div>
+            <div class="row shadow rounded bg-light p-3 m-3">
+                <h3 class="border-bottom pb-1 text-center">
+                    Boys
+                </h3>
+                <table class="table table-hover table-striped table-sm">
+                    <caption>Boys Leaderboard</caption>
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Event</th>
+                        <th>Athlete</th>
+                        <th>Performance</th>
+                        <th>Date</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var ev in Model.BoysEvents)
+                    {
+                        <tr>
+                            <th class="col-4">
+                                <a asp-area="" asp-controller="Home" asp-action="EventLeaderboard" asp-route-eventName="@ev.Key.UrlName">
+                                    @ev.Key.Name
+                                </a>
+                            </th>
+                            <td class="col-3">
+                                <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@ev.Value?.Athlete.UrlName">
+                                    @ev.Value?.Athlete.Name
+                                </a>
+                            </td>
+                            <td class="col-3">@ev.Value?.PerformanceFormatted</td>
+                            <td>@ev.Value?.Meet.Date.ToShortDateString()</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
             </div>
         </div>
         <div class="col-sm-6 ml-1 mr-1">
-            <div class="row">
-                <div class="container-fluid">
-                    <div class="row">
-                        <h3 class="border-bottom pb-1 text-center">
-                            Girls
-                        </h3>
-                    </div>
-                    <div class="row">
-                        @foreach (var ev in Model.GirlsEvents)
-                        {
-                            <div class="col-sm-2 m-1 border shadow rounded bg-light p-3">
-                                @ev.Key.Name
-                            </div>
-                        }
-                    </div>
-                </div>
+            <div class="row shadow rounded bg-light p-3 m-3">
+                <h3 class="border-bottom pb-1 text-center">
+                    Girls
+                </h3>
+                <table class="table table-hover table-striped table-sm">
+                    <caption>Girls Leaderboard</caption>
+                    <thead class="table-dark">
+                    <tr>
+                        <th>Event</th>
+                        <th>Athlete</th>
+                        <th>Performance</th>
+                        <th>Date</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var ev in Model.GirlsEvents)
+                    {
+                        <tr>
+                            <th class="col-4">
+                                <a asp-area="" asp-controller="Home" asp-action="EventLeaderboard" asp-route-eventName="@ev.Key.UrlName">
+                                    @ev.Key.Name
+                                </a>
+                            </th>
+                            <td class="col-3">
+                                <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@ev.Value?.Athlete.UrlName">
+                                    @ev.Value?.Athlete.Name
+                                </a>
+                            </td>
+                            <td class="col-3">@ev.Value?.PerformanceFormatted</td>
+                            <td>@ev.Value?.Meet.Date.ToShortDateString()</td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

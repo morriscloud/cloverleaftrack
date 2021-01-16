@@ -89,6 +89,29 @@ namespace CloverleafTrack.Controllers
             return View(viewModel);
         }
 
+        [Route("leaderboard/{eventName}")]
+        public async Task<IActionResult> EventLeaderboard(string eventName)
+        {
+            var trackEvents = await db.TrackEvents.ToListAsync();
+            var selectedEvent = trackEvents.FirstOrDefault(t => t.UrlName == eventName);
+            if (selectedEvent == null)
+            {
+                return NotFound();
+            }
+
+            var performances = await db.Performances
+                .Include(p => p.Athlete)
+                .Include(p => p.Meet)
+                .Where(p => p.TrackEventId == selectedEvent.Id)
+                .ToListAsync();
+            
+            performances = selectedEvent.Gender ? performances.OrderBy(p => p.TotalSeconds).ToList() : performances.OrderByDescending(p => p.TotalInches).ToList();
+            
+            var viewModel = new EventLeaderboardViewModel(selectedEvent, performances);
+            
+            return View("EventLeaderboard", viewModel);
+        }
+        
         [Route("roster")]
         public async Task<IActionResult> Roster()
         {
@@ -137,7 +160,7 @@ namespace CloverleafTrack.Controllers
             var groupedPerformances = athlete.Performances.GroupBy(p => p.TrackEvent).OrderBy(g => g.Key.SortOrder);
             foreach (var group in groupedPerformances)
             {
-                var best = @group.Key.RunningEvent ? @group.MinBy(p => p.TotalSeconds).First() : @group.MaxBy(p => p.TotalInches).First();
+                var best = group.Key.RunningEvent ? group.MinBy(p => p.TotalSeconds).First() : group.MaxBy(p => p.TotalInches).First();
                 lifetimePrs.Add(group.Key, best);
             }
 
@@ -168,6 +191,45 @@ namespace CloverleafTrack.Controllers
         public IActionResult Meets()
         {
             return View();
+        }
+
+        [Route("meets/{meetName}")]
+        public async Task<IActionResult> MeetResults(string meetName)
+        {
+            var meets = await db.Meets.ToListAsync();
+            var selectedMeet = meets.FirstOrDefault(m => m.UrlName == meetName);
+            if (selectedMeet == null)
+            {
+                return NotFound();
+            }
+
+            var boysPerformances = await db.Performances
+                .Include(p => p.Athlete)
+                .Include(p => p.TrackEvent)
+                .Where(p => p.MeetId == selectedMeet.Id && !p.TrackEvent.Gender)
+                .OrderBy(p => p.TrackEvent.SortOrder)
+                .ToListAsync();
+
+            var girlsPerformances = await db.Performances
+                .Include(p => p.Athlete)
+                .Include(p => p.TrackEvent)
+                .Where(p => p.MeetId == selectedMeet.Id && p.TrackEvent.Gender)
+                .OrderBy(p => p.TrackEvent.SortOrder)
+                .ToListAsync();
+
+            var boysPerformancesGroupedByEvent = boysPerformances.GroupBy(p => p.TrackEvent);
+            var girlsPerformancesGroupedByEvent = girlsPerformances.GroupBy(p => p.TrackEvent);
+
+            var boysResults = boysPerformancesGroupedByEvent.ToDictionary(group => group.Key, group => group.Key.RunningEvent
+                ? group.MinBy(p => p.TotalSeconds).ToList()
+                : group.MaxBy(p => p.TotalInches).ToList());
+            
+            var girlsResults = girlsPerformancesGroupedByEvent.ToDictionary(group => group.Key, group => group.Key.RunningEvent
+                ? group.MinBy(p => p.TotalSeconds).ToList()
+                : group.MaxBy(p => p.TotalInches).ToList());
+
+            var viewModel = new MeetDetailsViewModel(selectedMeet, boysResults, girlsResults);
+            return View("MeetDetails", viewModel);
         }
 
         [Route("error")]

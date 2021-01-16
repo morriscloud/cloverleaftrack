@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Web;
 
 namespace CloverleafTrack.Models
 {
@@ -12,7 +13,7 @@ namespace CloverleafTrack.Models
         public DateTime Date { get; set; }
         public string Name { get; set; }
         public Guid SeasonId { get; set; }
-        [NotMapped] public string UrlName => "";
+        [NotMapped] public string UrlName => $"{HttpUtility.UrlEncode(Name.Replace(" ", "-").ToLower())}";
 
         public Season Season { get; set; }
         public MeetResult MeetResult { get; set; }
