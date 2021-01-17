@@ -13,6 +13,7 @@ namespace CloverleafTrack.Models
         public DateTime Date { get; set; }
         public string Name { get; set; }
         public Guid SeasonId { get; set; }
+        public bool AllResultsIn { get; set; }
         [NotMapped] public string UrlName => $"{HttpUtility.UrlEncode(Name.Replace(" ", "-").ToLower())}";
 
         public Season Season { get; set; }

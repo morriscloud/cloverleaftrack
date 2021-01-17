@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+
 using CloverleafTrack.Data;
 using CloverleafTrack.Models;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +27,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 .Include(m => m.Season)
                 .Include(m => m.MeetResult)
                 .OrderByDescending(m => m.Date);
-            
+
             return View(await cloverleafTrackDataContext.ToListAsync());
         }
 
@@ -40,7 +42,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 .Include(m => m.Season)
                 .Include(m => m.MeetResult)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            
+
             if (meet == null)
             {
                 return NotFound();
@@ -52,13 +54,13 @@ namespace CloverleafTrack.Areas.Admin.Controllers
         public IActionResult Create()
         {
             ViewData[nameof(Meet.SeasonId)] = new SelectList(db.Seasons.OrderBy(s => s.Name), nameof(Season.Id), nameof(Season.Name));
-            
+
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Date,Name,SeasonId")] Meet meet)
+        public async Task<IActionResult> Create([Bind("Date,Name,SeasonId,AllResultsIn")] Meet meet)
         {
             if (ModelState.IsValid)
             {
@@ -67,9 +69,9 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 await db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            
+
             ViewData[nameof(Meet.SeasonId)] = new SelectList(db.Seasons.OrderBy(s => s.Name), nameof(Season.Id), nameof(Season.Name), meet.SeasonId);
-            
+
             return View(meet);
         }
 
@@ -85,15 +87,15 @@ namespace CloverleafTrack.Areas.Admin.Controllers
             {
                 return NotFound();
             }
-            
+
             ViewData[nameof(Meet.SeasonId)] = new SelectList(db.Seasons.OrderBy(s => s.Name), nameof(Season.Id), nameof(Season.Name), meet.SeasonId);
-            
+
             return View(meet);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Date,Name,SeasonId")] Meet meet)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Date,Name,SeasonId,AllResultsIn")] Meet meet)
         {
             if (id != meet.Id)
             {
@@ -118,9 +120,9 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            
+
             ViewData[nameof(Meet.SeasonId)] = new SelectList(db.Seasons.OrderBy(s => s.Name), nameof(Season.Id), nameof(Season.Name), meet.SeasonId);
-            
+
             return View(meet);
         }
 
@@ -135,7 +137,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 .Include(m => m.Season)
                 .Include(m => m.MeetResult)
                 .FirstOrDefaultAsync(m => m.Id == id);
-            
+
             if (meet == null)
             {
                 return NotFound();

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+
 using CloverleafTrack.Data;
 using CloverleafTrack.Models;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -58,8 +60,8 @@ namespace CloverleafTrack.Areas.Admin.Controllers
         {
             ViewData[nameof(Performance.TrackEventId)] = new SelectList(db.TrackEvents.OrderBy(t => t.Gender).ThenBy(t => t.SortOrder), nameof(TrackEvent.Id), nameof(TrackEvent.DisplayName));
             ViewData[nameof(Performance.AthleteId)] = new SelectList(db.Athletes.OrderBy(a => a.FirstName).ThenBy(a => a.LastName), nameof(Athlete.Id), nameof(Athlete.Name));
-            ViewData[nameof(Performance.MeetId)] = new SelectList(db.Meets.OrderBy(m => m.Name), nameof(Meet.Id), nameof(Meet.Name));
-            
+            ViewData[nameof(Performance.MeetId)] = new SelectList(db.Meets.Where(m => !m.AllResultsIn).OrderBy(m => m.Name), nameof(Meet.Id), nameof(Meet.Name));
+
             return View();
         }
 
@@ -74,11 +76,11 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 await db.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            
+
             ViewData[nameof(Performance.TrackEventId)] = new SelectList(db.TrackEvents.OrderBy(t => t.Gender).ThenBy(t => t.SortOrder), nameof(TrackEvent.Id), nameof(TrackEvent.DisplayName), performance.TrackEventId);
             ViewData[nameof(Performance.AthleteId)] = new SelectList(db.Athletes.OrderBy(a => a.FirstName).ThenBy(a => a.LastName), nameof(Athlete.Id), nameof(Athlete.Name), performance.AthleteId);
             ViewData[nameof(Performance.MeetId)] = new SelectList(db.Meets.OrderBy(m => m.Name), nameof(Meet.Id), nameof(Meet.Name), performance.MeetId);
-            
+
             return View(performance);
         }
 
@@ -94,7 +96,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 .Include(p => p.Meet)
                 .Include(p => p.TrackEvent)
                 .FirstOrDefaultAsync(p => p.Id == id);
-            
+
             if (performance == null)
             {
                 return NotFound();
@@ -150,7 +152,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 .Include(p => p.Meet)
                 .Include(p => p.TrackEvent)
                 .FirstOrDefaultAsync(p => p.Id == id);
-            
+
             if (performance == null)
             {
                 return NotFound();

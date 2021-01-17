@@ -104,14 +104,14 @@ namespace CloverleafTrack.Controllers
                 .Include(p => p.Meet)
                 .Where(p => p.TrackEventId == selectedEvent.Id)
                 .ToListAsync();
-            
-            performances = selectedEvent.Gender ? performances.OrderBy(p => p.TotalSeconds).ToList() : performances.OrderByDescending(p => p.TotalInches).ToList();
-            
+
+            performances = selectedEvent.RunningEvent ? performances.OrderBy(p => p.TotalSeconds).ToList() : performances.OrderByDescending(p => p.TotalInches).ToList();
+
             var viewModel = new EventLeaderboardViewModel(selectedEvent, performances);
-            
+
             return View("EventLeaderboard", viewModel);
         }
-        
+
         [Route("roster")]
         public async Task<IActionResult> Roster()
         {
@@ -221,12 +221,12 @@ namespace CloverleafTrack.Controllers
             var girlsPerformancesGroupedByEvent = girlsPerformances.GroupBy(p => p.TrackEvent);
 
             var boysResults = boysPerformancesGroupedByEvent.ToDictionary(group => group.Key, group => group.Key.RunningEvent
-                ? group.MinBy(p => p.TotalSeconds).ToList()
-                : group.MaxBy(p => p.TotalInches).ToList());
-            
+                ? group.OrderBy(p => p.TotalSeconds).ToList()
+                : group.OrderByDescending(p => p.TotalInches).ToList());
+
             var girlsResults = girlsPerformancesGroupedByEvent.ToDictionary(group => group.Key, group => group.Key.RunningEvent
-                ? group.MinBy(p => p.TotalSeconds).ToList()
-                : group.MaxBy(p => p.TotalInches).ToList());
+                ? group.OrderBy(p => p.TotalSeconds).ToList()
+                : group.OrderByDescending(p => p.TotalInches).ToList());
 
             var viewModel = new MeetDetailsViewModel(selectedMeet, boysResults, girlsResults);
             return View("MeetDetails", viewModel);

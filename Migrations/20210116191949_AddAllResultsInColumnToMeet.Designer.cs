@@ -4,14 +4,16 @@ using CloverleafTrack.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CloverleafTrack.Migrations
 {
     [DbContext(typeof(CloverleafTrackDataContext))]
-    partial class CloverleafTrackDataContextModelSnapshot : ModelSnapshot
+    [Migration("20210116191949_AddAllResultsInColumnToMeet")]
+    partial class AddAllResultsInColumnToMeet
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
