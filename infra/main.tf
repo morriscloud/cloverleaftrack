@@ -11,3 +11,9 @@ module "static_website" {
 
   website_domain_name = "cloverleaftrack.com"
 }
+
+resource "null_resource" "upload" {
+  provisioner "local-exec" {
+    command = "exec/s3-upload.sh ${module.static_website.website_bucket_name}"
+  }
+}
