@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using CloverleafTrack.Models;
 
-using CloverleafTrack.Models;
+using System.Collections.Generic;
 
 namespace CloverleafTrack.ViewModels
 {
-    public record LeaderboardViewModel(Dictionary<TrackEvent, Performance> BoysEvents, Dictionary<TrackEvent, Performance> GirlsEvents);
+    public record LeaderboardViewModel(Dictionary<TrackEvent, KeyValuePair<Performance, List<Athlete>>> BoysEvents, Dictionary<TrackEvent, KeyValuePair<Performance, List<Athlete>>> GirlsEvents);
 }

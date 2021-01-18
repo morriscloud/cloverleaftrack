@@ -1,9 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
-
-using CloverleafTrack.Data;
+﻿using CloverleafTrack.Data;
 using CloverleafTrack.Models;
 using CloverleafTrack.Options;
 using CloverleafTrack.ViewModels;
@@ -13,6 +8,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using MoreLinq;
+
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CloverleafTrack.Controllers
 {
@@ -40,8 +40,8 @@ namespace CloverleafTrack.Controllers
             var boysEvents = await db.TrackEvents.Where(t => !t.Gender).OrderBy(t => t.SortOrder).ToListAsync();
             var girlsEvents = await db.TrackEvents.Where(t => t.Gender).OrderBy(t => t.SortOrder).ToListAsync();
 
-            var boysEventsWithTopPerformance = new Dictionary<TrackEvent, Performance>();
-            var girlsEventsWithTopPerformance = new Dictionary<TrackEvent, Performance>();
+            var boysEventsWithTopPerformance = new Dictionary<TrackEvent, KeyValuePair<Performance, List<Athlete>>>();
+            var girlsEventsWithTopPerformance = new Dictionary<TrackEvent, KeyValuePair<Performance, List<Athlete>>>();
 
             foreach (var ev in boysEvents)
             {
@@ -51,17 +51,26 @@ namespace CloverleafTrack.Controllers
                     .Where(p => p.TrackEventId == ev.Id)
                     .ToListAsync();
 
-                Performance performance;
-                if (ev.RunningEvent)
+                var performance = ev.RunningEvent ? performances.MinBy(p => p.TotalSeconds).FirstOrDefault() : performances.MaxBy(p => p.TotalInches).FirstOrDefault();
+                KeyValuePair<Performance, List<Athlete>> performanceDictionary;
+
+                if (ev.RelayEvent)
                 {
-                    performance = performances.MinBy(p => p.TotalSeconds).FirstOrDefault();
+                    var matching = await db.Performances
+                        .Include(p => p.Athlete)
+                        .Include(p => p.Meet)
+                        .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
+                        .Select(p => p.Athlete)
+                        .ToListAsync();
+
+                    performanceDictionary = new KeyValuePair<Performance, List<Athlete>>(performance, matching);
                 }
                 else
                 {
-                    performance = performances.MaxBy(p => p.TotalInches).FirstOrDefault();
+                    performanceDictionary = new KeyValuePair<Performance, List<Athlete>>(performance, new List<Athlete> { performance.Athlete });
                 }
 
-                boysEventsWithTopPerformance.Add(ev, performance);
+                boysEventsWithTopPerformance.Add(ev, performanceDictionary);
             }
 
             foreach (var ev in girlsEvents)
@@ -72,17 +81,26 @@ namespace CloverleafTrack.Controllers
                     .Where(p => p.TrackEventId == ev.Id)
                     .ToListAsync();
 
-                Performance performance;
-                if (ev.RunningEvent)
+                var performance = ev.RunningEvent ? performances.MinBy(p => p.TotalSeconds).FirstOrDefault() : performances.MaxBy(p => p.TotalInches).FirstOrDefault();
+                KeyValuePair<Performance, List<Athlete>> performanceDictionary;
+
+                if (ev.RelayEvent)
                 {
-                    performance = performances.MinBy(p => p.TotalSeconds).FirstOrDefault();
+                    var matching = await db.Performances
+                        .Include(p => p.Athlete)
+                        .Include(p => p.Meet)
+                        .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
+                        .Select(p => p.Athlete)
+                        .ToListAsync();
+
+                    performanceDictionary = new KeyValuePair<Performance, List<Athlete>>(performance, matching);
                 }
                 else
                 {
-                    performance = performances.MaxBy(p => p.TotalInches).FirstOrDefault();
+                    performanceDictionary = new KeyValuePair<Performance, List<Athlete>>(performance, new List<Athlete> { performance.Athlete });
                 }
 
-                girlsEventsWithTopPerformance.Add(ev, performance);
+                girlsEventsWithTopPerformance.Add(ev, performanceDictionary);
             }
 
             var viewModel = new LeaderboardViewModel(boysEventsWithTopPerformance, girlsEventsWithTopPerformance);
@@ -105,9 +123,33 @@ namespace CloverleafTrack.Controllers
                 .Where(p => p.TrackEventId == selectedEvent.Id)
                 .ToListAsync();
 
+            var performancesDictionary = new Dictionary<Performance, List<Athlete>>();
             performances = selectedEvent.RunningEvent ? performances.OrderBy(p => p.TotalSeconds).ToList() : performances.OrderByDescending(p => p.TotalInches).ToList();
+            if (selectedEvent.RelayEvent)
+            {
+                performances = performances.DistinctBy(p => p.TotalSeconds).ToList();
 
-            var viewModel = new EventLeaderboardViewModel(selectedEvent, performances);
+                foreach (var performance in performances)
+                {
+                    var matching = await db.Performances
+                        .Include(p => p.Athlete)
+                        .Include(p => p.Meet)
+                        .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
+                        .Select(p => p.Athlete)
+                        .ToListAsync();
+
+                    performancesDictionary.Add(performance, matching);
+                }
+            }
+            else
+            {
+                foreach (var performance in performances)
+                {
+                    performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
+                }
+            }
+
+            var viewModel = new EventLeaderboardViewModel(selectedEvent, performancesDictionary);
 
             return View("EventLeaderboard", viewModel);
         }
@@ -188,9 +230,16 @@ namespace CloverleafTrack.Controllers
         }
 
         [Route("meets")]
-        public IActionResult Meets()
+        public async Task<IActionResult> Meets()
         {
-            return View();
+            var seasons = await db.Seasons
+                .Include(s => s.Meets)
+                .ThenInclude(m => m.Performances)
+                .OrderByDescending(s => s.Name)
+                .ToListAsync();
+
+            var viewModel = new MeetsViewModel(seasons);
+            return View(viewModel);
         }
 
         [Route("meets/{meetName}")]
@@ -224,11 +273,75 @@ namespace CloverleafTrack.Controllers
                 ? group.OrderBy(p => p.TotalSeconds).ToList()
                 : group.OrderByDescending(p => p.TotalInches).ToList());
 
+            var boysResultsDictionary = new Dictionary<TrackEvent, Dictionary<Performance, List<Athlete>>>();
+            foreach (var res in boysResults)
+            {
+                var performancesDictionary = new Dictionary<Performance, List<Athlete>>();
+
+                if (res.Key.RelayEvent)
+                {
+                    var performances = res.Value.DistinctBy(p => p.TotalSeconds);
+
+                    foreach (var performance in performances)
+                    {
+                        var matching = await db.Performances
+                            .Include(p => p.Athlete)
+                            .Include(p => p.Meet)
+                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
+                            .Select(p => p.Athlete)
+                            .ToListAsync();
+
+                        performancesDictionary.Add(performance, matching);
+                    }
+                }
+                else
+                {
+                    foreach (var performance in res.Value)
+                    {
+                        performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
+                    }
+                }
+
+                boysResultsDictionary.Add(res.Key, performancesDictionary);
+            }
+
             var girlsResults = girlsPerformancesGroupedByEvent.ToDictionary(group => group.Key, group => group.Key.RunningEvent
                 ? group.OrderBy(p => p.TotalSeconds).ToList()
                 : group.OrderByDescending(p => p.TotalInches).ToList());
 
-            var viewModel = new MeetDetailsViewModel(selectedMeet, boysResults, girlsResults);
+            var girlsResultsDictionary = new Dictionary<TrackEvent, Dictionary<Performance, List<Athlete>>>();
+            foreach (var res in girlsResults)
+            {
+                var performancesDictionary = new Dictionary<Performance, List<Athlete>>();
+
+                if (res.Key.RelayEvent)
+                {
+                    var performances = res.Value.DistinctBy(p => p.TotalSeconds);
+
+                    foreach (var performance in performances)
+                    {
+                        var matching = await db.Performances
+                            .Include(p => p.Athlete)
+                            .Include(p => p.Meet)
+                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
+                            .Select(p => p.Athlete)
+                            .ToListAsync();
+
+                        performancesDictionary.Add(performance, matching);
+                    }
+                }
+                else
+                {
+                    foreach (var performance in res.Value)
+                    {
+                        performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
+                    }
+                }
+
+                girlsResultsDictionary.Add(res.Key, performancesDictionary);
+            }
+
+            var viewModel = new MeetDetailsViewModel(selectedMeet, boysResultsDictionary, girlsResultsDictionary);
             return View("MeetDetails", viewModel);
         }
 

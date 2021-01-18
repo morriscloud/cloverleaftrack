@@ -44,18 +44,25 @@
                     @foreach (var ev in Model.BoysEvents)
                     {
                         <tr>
-                            <th class="col-4">
+                            <th class="col-4 align-middle">
                                 <a asp-area="" asp-controller="Home" asp-action="EventLeaderboard" asp-route-eventName="@ev.Key.UrlName">
                                     @ev.Key.Name
                                 </a>
                             </th>
-                            <td class="col-3">
-                                <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@ev.Value?.Athlete.UrlName">
-                                    @ev.Value?.Athlete.Name
-                                </a>
+                            <td class="col-3 align-middle">
+                                <ul class="list-unstyled mb-0">
+                                    @foreach (var athlete in ev.Value.Value)
+                                    {
+                                        <li>
+                                            <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
+                                                @athlete.Name
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
                             </td>
-                            <td class="col-3">@ev.Value?.PerformanceFormatted</td>
-                            <td>@ev.Value?.Meet.Date.ToShortDateString()</td>
+                            <td class="col-3 align-middle">@ev.Value.Key.PerformanceFormatted</td>
+                            <td class="align-middle">@ev.Value.Key.Meet.Date.ToString("MM/dd/yyyy")</td>
                         </tr>
                     }
                     </tbody>
@@ -78,23 +85,30 @@
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach (var ev in Model.GirlsEvents)
-                    {
-                        <tr>
-                            <th class="col-4">
-                                <a asp-area="" asp-controller="Home" asp-action="EventLeaderboard" asp-route-eventName="@ev.Key.UrlName">
-                                    @ev.Key.Name
-                                </a>
-                            </th>
-                            <td class="col-3">
-                                <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@ev.Value?.Athlete.UrlName">
-                                    @ev.Value?.Athlete.Name
-                                </a>
-                            </td>
-                            <td class="col-3">@ev.Value?.PerformanceFormatted</td>
-                            <td>@ev.Value?.Meet.Date.ToShortDateString()</td>
-                        </tr>
-                    }
+                        @foreach (var ev in Model.GirlsEvents)
+                        {
+                            <tr>
+                                <th class="col-4 align-middle">
+                                    <a asp-area="" asp-controller="Home" asp-action="EventLeaderboard" asp-route-eventName="@ev.Key.UrlName">
+                                        @ev.Key.Name
+                                    </a>
+                                </th>
+                                <td class="col-3 align-middle">
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach (var athlete in ev.Value.Value)
+                                        {
+                                            <li>
+                                                <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
+                                                    @athlete.Name
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </td>
+                                <td class="col-3 align-middle">@ev.Value.Key.PerformanceFormatted</td>
+                                <td class="align-middle">@ev.Value.Key.Meet.Date.ToString("MM/dd/yyyy")</td>
+                            </tr>
+                        }
                     </tbody>
                 </table>
             </div>

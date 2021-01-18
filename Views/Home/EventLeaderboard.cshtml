@@ -46,15 +46,22 @@
                 <tr>
                     <th class="text-center align-middle">@count</th>
                     <th class="align-middle">
-                        <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@performance.Athlete.UrlName">
-                            @performance.Athlete.Name
-                        </a>
+                        <ul class="list-unstyled mb-0">
+                            @foreach (var athlete in performance.Value)
+                            {
+                                <li>
+                                    <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
+                                        @athlete.Name
+                                    </a>
+                                </li>
+                            }
+                        </ul>
                     </th>
-                    <td class="text-nowrap align-middle">@performance.PerformanceFormatted</td>
-                    <td class="align-middle">@performance.Meet.Date.ToShortDateString()</td>
+                    <td class="text-nowrap align-middle">@performance.Key.PerformanceFormatted</td>
+                    <td class="align-middle">@performance.Key.Meet.Date.ToString("MM/dd/yyyy")</td>
                     <td class="align-middle">
-                        <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@performance.Meet.UrlName">
-                            @performance.Meet.Name
+                        <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@performance.Key.Meet.UrlName">
+                            @performance.Key.Meet.Name
                         </a>
                     </td>
                 </tr>

@@ -1,10 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using CloverleafTrack.Data;
+﻿using CloverleafTrack.Data;
 using CloverleafTrack.Models;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CloverleafTrack.Areas.Admin.Controllers
 {
@@ -20,7 +22,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await db.Athletes.ToListAsync());
+            return View(await db.Athletes.OrderBy(a => a.FirstName).ThenBy(a => a.LastName).ThenBy(a => a.GraduationYear).ToListAsync());
         }
 
         public async Task<IActionResult> Details(Guid? id)
@@ -31,7 +33,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
             }
 
             var athlete = await db.Athletes.FirstOrDefaultAsync(a => a.Id == id);
-            
+
             if (athlete == null)
             {
                 return NotFound();

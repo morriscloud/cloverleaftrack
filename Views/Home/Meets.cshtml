@@ -1,4 +1,6 @@
-﻿@{
+﻿@model MeetsViewModel
+
+@{
     ViewData["Title"] = "Meets";
 }
 
@@ -20,3 +22,34 @@
         Meets
     </h1>
 </div>
+
+@foreach (var season in Model.Seasons.Where(s => s.Meets.Count > 0))
+{
+    <div class="shadow rounded bg-light p-3 pb-0 mb-1">
+        <h3 class="border-bottom pb-1">
+            @season.Name
+        </h3>
+        <table class="table table-hover table-striped table-sm event-performances">
+            <caption>@season.Name Meets</caption>
+            <thead class="table-dark">
+            <tr>
+                <th class="col-9">Meet</th>
+                <th class="col-3">Date</th>
+            </tr>
+            </thead>
+            <tbody>
+            @foreach (var meet in season.Meets.Where(m => m.Performances.Count > 0).OrderBy(m => m.Date))
+            {
+                <tr>
+                    <td class="text-nowrap align-middle">
+                        <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@meet.UrlName">
+                            @meet.Name
+                        </a>
+                    </td>
+                    <td class="align-middle">@meet.Date.ToString("MM/dd/yyyy")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}

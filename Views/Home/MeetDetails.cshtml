@@ -54,11 +54,18 @@
                         {
                             <tr>
                                 <th class="align-middle">
-                                    <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@performance.Athlete.UrlName">
-                                        @performance.Athlete.Name
-                                    </a>
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach (var athlete in performance.Value)
+                                        {
+                                            <li>
+                                                <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
+                                                    @athlete.Name
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
                                 </th>
-                                <td class="text-nowrap align-middle">@performance.PerformanceFormatted</td>
+                                <td class="text-nowrap align-middle">@performance.Key.PerformanceFormatted</td>
                             </tr>
                         }
                         </tbody>
@@ -85,17 +92,24 @@
                         </tr>
                         </thead>
                         <tbody>
-                        @foreach (var performance in eventResult.Value)
-                        {
-                            <tr>
-                                <th class="align-middle">
-                                    <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@performance.Athlete.UrlName">
-                                        @performance.Athlete.Name
-                                    </a>
-                                </th>
-                                <td class="text-nowrap align-middle">@performance.PerformanceFormatted</td>
-                            </tr>
-                        }
+                            @foreach (var performance in eventResult.Value)
+                            {
+                                <tr>
+                                    <th class="align-middle">
+                                        <ul class="list-unstyled mb-0">
+                                            @foreach (var athlete in performance.Value)
+                                            {
+                                                <li>
+                                                    <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
+                                                        @athlete.Name
+                                                    </a>
+                                                </li>
+                                            }
+                                        </ul>
+                                    </th>
+                                    <td class="text-nowrap align-middle">@performance.Key.PerformanceFormatted</td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </div>

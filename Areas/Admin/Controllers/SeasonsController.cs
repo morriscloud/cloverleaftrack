@@ -1,10 +1,12 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using CloverleafTrack.Data;
+﻿using CloverleafTrack.Data;
 using CloverleafTrack.Models;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CloverleafTrack.Areas.Admin.Controllers
 {
@@ -20,7 +22,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await db.Seasons.ToListAsync());
+            return View(await db.Seasons.OrderBy(s => s.Name).ToListAsync());
         }
 
         public async Task<IActionResult> Details(Guid? id)
@@ -32,7 +34,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
             var season = await db.Seasons
                 .FirstOrDefaultAsync(s => s.Id == id);
-            
+
             if (season == null)
             {
                 return NotFound();
@@ -69,12 +71,12 @@ namespace CloverleafTrack.Areas.Admin.Controllers
             }
 
             var season = await db.Seasons.FindAsync(id);
-            
+
             if (season == null)
             {
                 return NotFound();
             }
-            
+
             return View(season);
         }
 
@@ -118,7 +120,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
             var season = await db.Seasons
                 .FirstOrDefaultAsync(s => s.Id == id);
-            
+
             if (season == null)
             {
                 return NotFound();
