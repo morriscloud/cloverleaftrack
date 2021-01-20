@@ -44,6 +44,38 @@ resource "cloudflare_zone_dnssec" "this" {
   zone_id = cloudflare_zone.this.id
 }
 
+resource "cloudflare_zone_settings_override" "this" {
+  zone_id = cloudflare_zone.this.id
+
+  settings {
+    always_use_https = "on"
+    brotli = "on"
+    http2 = "on"
+    hotlink_protection = "on"
+    rocket_loader = "on"
+    websockets = "off"
+    zero_rtt = "on"
+
+    min_tls_version = "1.3"
+    ssl = "strict"
+    tls_1_3 = "on"
+
+    minify {
+      css = "on"
+      html = "on"
+      js = "on"
+    }
+
+    security_header {
+      enabled = "true"
+      preload = "true"
+      max_age = "6"
+      include_subdomains = "true"
+      nosniff = "true"
+    }
+  }
+}
+
 resource "cloudflare_record" "validation" {
   for_each = {
     for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
@@ -59,8 +91,17 @@ resource "cloudflare_record" "validation" {
   zone_id = cloudflare_zone.this.id
 }
 
+resource "cloudflare_record" "cname" {
+  count = length(module.cloudfront.cloudfront_domain_names)
+
+  name    = var.domain_name
+  value   = module.cloudfront.cloudfront_domain_names[count.index]
+  type    = "CNAME"
+  zone_id = cloudflare_zone.this.id
+}
+
 resource "aws_acm_certificate_validation" "this" {
-  certificate_arn = aws_acm_certificate.this.arn
+  certificate_arn         = aws_acm_certificate.this.arn
   validation_record_fqdns = [for record in cloudflare_record.validation : record.hostname]
 }
 
@@ -102,6 +143,9 @@ module "cloudfront" {
   index_document = "index.html"
 
   s3_bucket_is_public_website = true
+
+  domain_names        = [var.domain_name]
+  acm_certificate_arn = aws_acm_certificate.this.arn
 
   default_ttl = 30
   max_ttl     = 60
