@@ -54,9 +54,14 @@ resource "cloudflare_record" "validation" {
   }
 
   name    = each.value.name
-  value   = each.value.record
+  value   = trimsuffix(each.value.record, ".")
   type    = each.value.type
   zone_id = cloudflare_zone.this.id
+}
+
+resource "aws_acm_certificate_validation" "this" {
+  certificate_arn = aws_acm_certificate.this.arn
+  validation_record_fqdns = [for record in cloudflare_record.validation : record.hostname]
 }
 
 resource "aws_acm_certificate" "this" {
