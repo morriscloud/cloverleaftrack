@@ -62,7 +62,7 @@ resource "cloudflare_zone_settings_override" "this" {
 
     min_tls_version = "1.3"
     ssl = "strict"
-    tls_1_3 = "on"
+    tls_1_3 = "zrt"
 
     minify {
       css = "on"
