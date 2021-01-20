@@ -118,10 +118,6 @@ resource "aws_acm_certificate" "this" {
   tags = {
     Project = "CloverleafTrack"
   }
-
-  lifecycle {
-    create_before_destroy = true
-  }
 }
 
 module "static_website" {
