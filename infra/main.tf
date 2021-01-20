@@ -3,18 +3,18 @@ terraform {
 
   required_providers {
     cloudflare = {
-      source = "cloudflare/cloudflare"
+      source  = "cloudflare/cloudflare"
       version = "2.17.0"
     }
 
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = "3.24.1"
     }
   }
 
   backend "remote" {
-    hostname = "app.terraform.io"
+    hostname     = "app.terraform.io"
     organization = "cloverleaf"
 
     workspaces {
@@ -32,8 +32,8 @@ provider "cloudflare" {
 
 variable "domain_name" {
   description = "The domain name of the website."
-  type = string
-  default = "cloverleaftrack.com"
+  type        = string
+  default     = "cloverleaftrack.com"
 }
 
 resource "cloudflare_zone" "this" {
@@ -44,8 +44,23 @@ resource "cloudflare_zone_dnssec" "this" {
   zone_id = cloudflare_zone.this.id
 }
 
+resource "cloudflare_record" "validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  name    = each.value.name
+  value   = each.value.record
+  type    = each.value.type
+  zone_id = cloudflare_zone.this.id
+}
+
 resource "aws_acm_certificate" "this" {
-  domain_name = var.domain_name
+  domain_name       = var.domain_name
   validation_method = "DNS"
 
   tags = {
