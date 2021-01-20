@@ -12,4 +12,4 @@ if [[ -z "$s3bucketname" ]]; then
   exit 1
 fi
 
-aws s3 sync ../output/CloverleafTrack/localhost_5001/ "s3://$s3bucketname" --exclude "README.md"
+aws s3 sync output/CloverleafTrack/localhost_5001/ "s3://$s3bucketname" --exclude "README.md"
