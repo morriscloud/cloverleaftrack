@@ -27,6 +27,11 @@ provider "aws" {
   region = "us-east-2"
 }
 
+provider "aws" {
+  alias = "us-east-1"
+  region = "us-east-1"
+}
+
 provider "cloudflare" {
 }
 
@@ -50,7 +55,6 @@ resource "cloudflare_zone_settings_override" "this" {
   settings {
     always_use_https = "on"
     brotli = "on"
-    http2 = "on"
     hotlink_protection = "on"
     rocket_loader = "on"
     websockets = "off"
@@ -106,6 +110,8 @@ resource "aws_acm_certificate_validation" "this" {
 }
 
 resource "aws_acm_certificate" "this" {
+  provider = aws.us-east-1
+
   domain_name       = var.domain_name
   validation_method = "DNS"
 
