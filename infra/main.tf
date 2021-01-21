@@ -160,21 +160,21 @@ resource "cloudflare_record" "validation" {
   zone_id = cloudflare_zone.this.id
 }
 
-//resource "cloudflare_record" "cname" {
-//  count = length(module.cloudfront.cloudfront_domain_names)
-//
-//  name    = var.domain_name
-//  value   = module.cloudfront.cloudfront_domain_names[count.index]
-//  type    = "CNAME"
-//  zone_id = cloudflare_zone.this.id
-//}
+resource "cloudflare_record" "cname" {
+  count = length(module.cloudfront.cloudfront_domain_names)
 
-//resource "aws_acm_certificate_validation" "this" {
-//  provider = aws.us-east-1
-//
-//  certificate_arn         = aws_acm_certificate.this.arn
-//  validation_record_fqdns = [for record in cloudflare_record.validation : record.hostname]
-//}
+  name    = var.domain_name
+  value   = module.cloudfront.cloudfront_domain_names[count.index]
+  type    = "CNAME"
+  zone_id = cloudflare_zone.this.id
+}
+
+resource "aws_acm_certificate_validation" "this" {
+  provider = aws.us-east-1
+
+  certificate_arn         = aws_acm_certificate.this.arn
+  validation_record_fqdns = [for record in cloudflare_record.validation : record.hostname]
+}
 
 resource "aws_acm_certificate" "this" {
   provider = aws.us-east-1
@@ -203,24 +203,24 @@ resource "null_resource" "upload" {
   }
 }
 
-//module "cloudfront" {
-//  source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-cloudfront?ref=v0.7.1"
-//
-//  bucket_name             = var.domain_name
-//  bucket_website_endpoint = module.static_website.website_bucket_endpoint
-//
-//  index_document = "index.html"
-//
-//  s3_bucket_is_public_website = true
-//
-//  //domain_names        = [var.domain_name]
-//  //acm_certificate_arn = aws_acm_certificate.this.arn
-//
-//  default_ttl = 30
-//  max_ttl     = 60
-//  min_ttl     = 0
-//
-//  custom_tags = {
-//    Project = "CloverleafTrack"
-//  }
-//}
+module "cloudfront" {
+  source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-cloudfront?ref=v0.7.1"
+
+  bucket_name             = var.domain_name
+  bucket_website_endpoint = module.static_website.website_bucket_endpoint
+
+  index_document = "index.html"
+
+  s3_bucket_is_public_website = true
+
+  domain_names        = [var.domain_name]
+  acm_certificate_arn = aws_acm_certificate.this.arn
+
+  default_ttl = 30
+  max_ttl     = 60
+  min_ttl     = 0
+
+  custom_tags = {
+    Project = "CloverleafTrack"
+  }
+}
