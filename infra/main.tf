@@ -89,20 +89,20 @@ resource "cloudflare_zone_settings_override" "this" {
   }
 }
 
-resource "cloudflare_record" "validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
-
-  name    = each.value.name
-  value   = trimsuffix(each.value.record, ".")
-  type    = each.value.type
-  zone_id = cloudflare_zone.this.id
-}
+//resource "cloudflare_record" "validation" {
+//  for_each = {
+//    for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
+//      name   = dvo.resource_record_name
+//      record = dvo.resource_record_value
+//      type   = dvo.resource_record_type
+//    }
+//  }
+//
+//  name    = each.value.name
+//  value   = trimsuffix(each.value.record, ".")
+//  type    = each.value.type
+//  zone_id = cloudflare_zone.this.id
+//}
 
 //resource "cloudflare_record" "cname" {
 //  count = length(module.cloudfront.cloudfront_domain_names)
@@ -113,22 +113,22 @@ resource "cloudflare_record" "validation" {
 //  zone_id = cloudflare_zone.this.id
 //}
 
-resource "aws_acm_certificate_validation" "this" {
-  provider = aws.us-east-1
-
-  certificate_arn         = aws_acm_certificate.this.arn
-  validation_record_fqdns = [for record in cloudflare_record.validation : record.hostname]
-}
-
-resource "aws_acm_certificate" "this" {
-  provider = aws.us-east-1
-
-  domain_name       = var.domain_name
-  validation_method = "DNS"
-
-  tags = {
-    Project = "CloverleafTrack"
-  }
+//resource "aws_acm_certificate_validation" "this" {
+//  provider = aws.us-east-1
+//
+//  certificate_arn         = aws_acm_certificate.this.arn
+//  validation_record_fqdns = [for record in cloudflare_record.validation : record.hostname]
+//}
+//
+//resource "aws_acm_certificate" "this" {
+//  provider = aws.us-east-1
+//
+//  domain_name       = var.domain_name
+//  validation_method = "DNS"
+//
+//  tags = {
+//    Project = "CloverleafTrack"
+//  }
 }
 
 //module "static_website" {
