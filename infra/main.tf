@@ -50,44 +50,44 @@ variable "domain_name" {
   default     = "cloverleaftrack.com"
 }
 
-//resource "cloudflare_zone" "this" {
-//  zone = var.domain_name
-//}
-//
-//resource "cloudflare_zone_dnssec" "this" {
-//  zone_id = cloudflare_zone.this.id
-//}
-//
-//resource "cloudflare_zone_settings_override" "this" {
-//  zone_id = cloudflare_zone.this.id
-//
-//  settings {
-//    always_use_https = "on"
-//    brotli = "on"
-//    hotlink_protection = "on"
-//    rocket_loader = "on"
-//    websockets = "off"
-//    zero_rtt = "on"
-//
-//    min_tls_version = "1.3"
-//    ssl = "strict"
-//    tls_1_3 = "zrt"
-//
-//    minify {
-//      css = "on"
-//      html = "on"
-//      js = "on"
-//    }
-//
-//    security_header {
-//      enabled = "true"
-//      preload = "true"
-//      max_age = "6"
-//      include_subdomains = "true"
-//      nosniff = "true"
-//    }
-//  }
-//}
+resource "cloudflare_zone" "this" {
+  zone = var.domain_name
+}
+
+resource "cloudflare_zone_dnssec" "this" {
+  zone_id = cloudflare_zone.this.id
+}
+
+resource "cloudflare_zone_settings_override" "this" {
+  zone_id = cloudflare_zone.this.id
+
+  settings {
+    always_use_https = "on"
+    brotli = "on"
+    hotlink_protection = "on"
+    rocket_loader = "on"
+    websockets = "off"
+    zero_rtt = "on"
+
+    min_tls_version = "1.3"
+    ssl = "strict"
+    tls_1_3 = "zrt"
+
+    minify {
+      css = "on"
+      html = "on"
+      js = "on"
+    }
+
+    security_header {
+      enabled = "true"
+      preload = "true"
+      max_age = "6"
+      include_subdomains = "true"
+      nosniff = "true"
+    }
+  }
+}
 
 //resource "cloudflare_record" "validation" {
 //  for_each = {
@@ -120,16 +120,16 @@ variable "domain_name" {
 //  validation_record_fqdns = [for record in cloudflare_record.validation : record.hostname]
 //}
 
-//resource "aws_acm_certificate" "this" {
-//  provider = aws.us-east-1
-//
-//  domain_name       = var.domain_name
-//  validation_method = "DNS"
-//
-//  tags = {
-//    Project = "CloverleafTrack"
-//  }
-//}
+resource "aws_acm_certificate" "this" {
+  provider = aws.us-east-1
+
+  domain_name       = var.domain_name
+  validation_method = "DNS"
+
+  tags = {
+    Project = "CloverleafTrack"
+  }
+}
 
 //module "static_website" {
 //  source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-static-website?ref=v0.7.1"
