@@ -89,6 +89,14 @@ resource "cloudflare_zone_settings_override" "this" {
   }
 }
 
+resource "cloudflare_record" "www" {
+  name    = "www"
+  type    = "CNAME"
+  zone_id = cloudflare_zone.this.id
+  value = var.domain_name
+  proxied = true
+}
+
 resource "cloudflare_record" "caa_amazon" {
   name    = var.domain_name
   type    = "CAA"
@@ -137,20 +145,20 @@ resource "cloudflare_record" "caa_amazonaws" {
   }
 }
 
-//resource "cloudflare_record" "validation" {
-//  for_each = {
-//    for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
-//      name   = dvo.resource_record_name
-//      record = dvo.resource_record_value
-//      type   = dvo.resource_record_type
-//    }
-//  }
-//
-//  name    = each.value.name
-//  value   = trimsuffix(each.value.record, ".")
-//  type    = each.value.type
-//  zone_id = cloudflare_zone.this.id
-//}
+resource "cloudflare_record" "validation" {
+  for_each = {
+    for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
+      name   = dvo.resource_record_name
+      record = dvo.resource_record_value
+      type   = dvo.resource_record_type
+    }
+  }
+
+  name    = each.value.name
+  value   = trimsuffix(each.value.record, ".")
+  type    = each.value.type
+  zone_id = cloudflare_zone.this.id
+}
 
 //resource "cloudflare_record" "cname" {
 //  count = length(module.cloudfront.cloudfront_domain_names)
@@ -168,16 +176,16 @@ resource "cloudflare_record" "caa_amazonaws" {
 //  validation_record_fqdns = [for record in cloudflare_record.validation : record.hostname]
 //}
 
-//resource "aws_acm_certificate" "this" {
-//  provider = aws.us-east-1
-//
-//  domain_name       = var.domain_name
-//  validation_method = "DNS"
-//
-//  tags = {
-//    Project = "CloverleafTrack"
-//  }
-//}
+resource "aws_acm_certificate" "this" {
+  provider = aws.us-east-1
+
+  domain_name       = var.domain_name
+  validation_method = "DNS"
+
+  tags = {
+    Project = "CloverleafTrack"
+  }
+}
 
 module "static_website" {
   source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-static-website?ref=v0.7.1"
