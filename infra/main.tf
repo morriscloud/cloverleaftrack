@@ -122,21 +122,21 @@ variable "domain_name" {
 //  }
 //}
 
-module "static_website" {
-  source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-static-website?ref=v0.7.1"
-
-  website_domain_name = var.domain_name
-
-  custom_tags = {
-    Project = "CloverleafTrack"
-  }
-}
-
-resource "null_resource" "upload" {
-  provisioner "local-exec" {
-    command = "exec/s3-upload.sh ${module.static_website.website_bucket_name}"
-  }
-}
+//module "static_website" {
+//  source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-static-website?ref=v0.7.1"
+//
+//  website_domain_name = var.domain_name
+//
+//  custom_tags = {
+//    Project = "CloverleafTrack"
+//  }
+//}
+//
+//resource "null_resource" "upload" {
+//  provisioner "local-exec" {
+//    command = "exec/s3-upload.sh ${module.static_website.website_bucket_name}"
+//  }
+//}
 
 //module "cloudfront" {
 //  source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-cloudfront?ref=v0.7.1"
