@@ -13,7 +13,7 @@ terraform {
     }
 
     null = {
-      source = "hashicorp/null"
+      source  = "hashicorp/null"
       version = "3.0.0"
     }
   }
@@ -33,7 +33,7 @@ provider "aws" {
 }
 
 provider "aws" {
-  alias = "us-east-1"
+  alias  = "us-east-1"
   region = "us-east-1"
 }
 
@@ -62,47 +62,95 @@ resource "cloudflare_zone_settings_override" "this" {
   zone_id = cloudflare_zone.this.id
 
   settings {
-    always_use_https = "on"
-    brotli = "on"
+    always_use_https   = "on"
+    brotli             = "on"
     hotlink_protection = "on"
-    rocket_loader = "on"
-    websockets = "off"
-    zero_rtt = "on"
+    rocket_loader      = "on"
+    websockets         = "off"
+    zero_rtt           = "on"
 
     min_tls_version = "1.3"
-    ssl = "strict"
-    tls_1_3 = "zrt"
+    ssl             = "strict"
+    tls_1_3         = "zrt"
 
     minify {
-      css = "on"
+      css  = "on"
       html = "on"
-      js = "on"
+      js   = "on"
     }
 
     security_header {
-      enabled = "true"
-      preload = "true"
-      max_age = "6"
+      enabled            = "true"
+      preload            = "true"
+      max_age            = "6"
       include_subdomains = "true"
-      nosniff = "true"
+      nosniff            = "true"
     }
   }
 }
 
-resource "cloudflare_record" "validation" {
-  for_each = {
-    for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
-      name   = dvo.resource_record_name
-      record = dvo.resource_record_value
-      type   = dvo.resource_record_type
-    }
-  }
-
-  name    = each.value.name
-  value   = trimsuffix(each.value.record, ".")
-  type    = each.value.type
+resource "cloudflare_record" "caa_amazon" {
+  name    = var.domain_name
+  type    = "CAA"
   zone_id = cloudflare_zone.this.id
+
+  data = {
+    flags = "0"
+    tag   = "issue"
+    value = "amazon.com"
+  }
 }
+
+resource "cloudflare_record" "caa_amazontrust" {
+  name    = var.domain_name
+  type    = "CAA"
+  zone_id = cloudflare_zone.this.id
+
+  data = {
+    flags = "0"
+    tag   = "issue"
+    value = "amazontrust.com"
+  }
+}
+
+resource "cloudflare_record" "caa_awstrust" {
+  name    = var.domain_name
+  type    = "CAA"
+  zone_id = cloudflare_zone.this.id
+
+  data = {
+    flags = "0"
+    tag   = "issue"
+    value = "awstrust.com"
+  }
+}
+
+resource "cloudflare_record" "caa_amazonaws" {
+  name    = var.domain_name
+  type    = "CAA"
+  zone_id = cloudflare_zone.this.id
+
+  data = {
+    flags = "0"
+    tag   = "issue"
+    value = "amazonaws.com"
+  }
+}
+
+//resource "cloudflare_record" "validation" {
+//  for_each = {
+//    for dvo in aws_acm_certificate.this.domain_validation_options : dvo.domain_name => {
+//      name   = dvo.resource_record_name
+//      record = dvo.resource_record_value
+//      type   = dvo.resource_record_type
+//    }
+//  }
+//
+//  name    = each.value.name
+//  value   = trimsuffix(each.value.record, ".")
+//  type    = each.value.type
+//  zone_id = cloudflare_zone.this.id
+//}
 
 //resource "cloudflare_record" "cname" {
 //  count = length(module.cloudfront.cloudfront_domain_names)
@@ -120,16 +168,16 @@ resource "cloudflare_record" "validation" {
 //  validation_record_fqdns = [for record in cloudflare_record.validation : record.hostname]
 //}
 
-resource "aws_acm_certificate" "this" {
-  provider = aws.us-east-1
-
-  domain_name       = var.domain_name
-  validation_method = "DNS"
-
-  tags = {
-    Project = "CloverleafTrack"
-  }
-}
+//resource "aws_acm_certificate" "this" {
+//  provider = aws.us-east-1
+//
+//  domain_name       = var.domain_name
+//  validation_method = "DNS"
+//
+//  tags = {
+//    Project = "CloverleafTrack"
+//  }
+//}
 
 module "static_website" {
   source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-static-website?ref=v0.7.1"
