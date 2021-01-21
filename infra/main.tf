@@ -160,14 +160,14 @@ resource "cloudflare_record" "validation" {
   zone_id = cloudflare_zone.this.id
 }
 
-resource "cloudflare_record" "cname" {
-  count = length(module.cloudfront.cloudfront_domain_names)
-
-  name    = var.domain_name
-  value   = module.cloudfront.cloudfront_domain_names[count.index]
-  type    = "CNAME"
-  zone_id = cloudflare_zone.this.id
-}
+//resource "cloudflare_record" "cname" {
+//  count = length(module.cloudfront.cloudfront_domain_names)
+//
+//  name    = var.domain_name
+//  value   = module.cloudfront.cloudfront_domain_names[count.index]
+//  type    = "CNAME"
+//  zone_id = cloudflare_zone.this.id
+//}
 
 resource "aws_acm_certificate_validation" "this" {
   provider = aws.us-east-1
