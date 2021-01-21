@@ -129,7 +129,7 @@ resource "cloudflare_zone_settings_override" "this" {
 //  tags = {
 //    Project = "CloverleafTrack"
 //  }
-}
+//}
 
 //module "static_website" {
 //  source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-static-website?ref=v0.7.1"
