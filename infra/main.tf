@@ -196,7 +196,7 @@ module "static_website" {
 resource "null_resource" "upload" {
 
   triggers = {
-    always_run = "${timestamp()}"
+    always_run = timestamp()
   }
 
   provisioner "local-exec" {
