@@ -11,11 +11,6 @@ terraform {
       source  = "hashicorp/aws"
       version = "3.24.1"
     }
-
-    null = {
-      source  = "hashicorp/null"
-      version = "3.0.0"
-    }
   }
 
   backend "remote" {
@@ -35,10 +30,6 @@ provider "aws" {
 provider "aws" {
   alias  = "us-east-1"
   region = "us-east-1"
-}
-
-provider "null" {
-
 }
 
 provider "cloudflare" {
@@ -194,12 +185,6 @@ module "static_website" {
 
   custom_tags = {
     Project = "CloverleafTrack"
-  }
-}
-
-resource "null_resource" "upload" {
-  provisioner "local-exec" {
-    command = "exec/s3-upload.sh ${module.static_website.website_bucket_name}"
   }
 }
 
