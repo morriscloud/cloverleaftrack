@@ -54,10 +54,6 @@ resource "cloudflare_zone" "this" {
   zone = var.domain_name
 }
 
-resource "cloudflare_zone_dnssec" "this" {
-  zone_id = cloudflare_zone.this.id
-}
-
 resource "cloudflare_zone_settings_override" "this" {
   zone_id = cloudflare_zone.this.id
 
