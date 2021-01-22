@@ -11,6 +11,11 @@ terraform {
       source  = "hashicorp/aws"
       version = "3.24.1"
     }
+
+    null = {
+      source  = "hashicorp/null"
+      version = "3.0.0"
+    }
   }
 
   backend "remote" {
@@ -32,6 +37,10 @@ provider "aws" {
   region = "us-east-1"
 }
 
+provider "null" {
+
+}
+
 provider "cloudflare" {
 }
 
@@ -43,6 +52,10 @@ variable "domain_name" {
 
 resource "cloudflare_zone" "this" {
   zone = var.domain_name
+}
+
+resource "cloudflare_zone_dnssec" "this" {
+  zone_id = cloudflare_zone.this.id
 }
 
 resource "cloudflare_zone_settings_override" "this" {
@@ -80,7 +93,7 @@ resource "cloudflare_record" "www" {
   name    = "www"
   type    = "CNAME"
   zone_id = cloudflare_zone.this.id
-  value   = var.domain_name
+  value = var.domain_name
   proxied = true
 }
 
