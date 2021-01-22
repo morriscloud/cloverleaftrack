@@ -184,20 +184,6 @@ module "static_website" {
   }
 }
 
-<<<<<<< HEAD
-=======
-resource "null_resource" "upload" {
-
-  triggers = {
-    always_run = timestamp()
-  }
-
-  provisioner "local-exec" {
-    command = "exec/s3-upload.sh ${module.static_website.website_bucket_name}"
-  }
-}
-
->>>>>>> 63ba44575ac5320d8eae014f4a2449682b9f44a9
 module "cloudfront" {
   source = "git::git@github.com:gruntwork-io/package-static-assets.git//modules/s3-cloudfront?ref=v0.7.1"
 
