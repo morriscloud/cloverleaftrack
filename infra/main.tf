@@ -93,7 +93,7 @@ resource "cloudflare_record" "www" {
   name    = "www"
   type    = "CNAME"
   zone_id = cloudflare_zone.this.id
-  value = var.domain_name
+  value   = var.domain_name
   proxied = true
 }
 
@@ -198,6 +198,11 @@ module "static_website" {
 }
 
 resource "null_resource" "upload" {
+
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+
   provisioner "local-exec" {
     command = "exec/s3-upload.sh ${module.static_website.website_bucket_name}"
   }
