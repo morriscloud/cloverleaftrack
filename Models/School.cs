@@ -8,6 +8,6 @@ namespace CloverleafTrack.Models
         public Guid Id { get; set; }
         public string Name { get; set; }
 
-        public List<Meet> Meets { get; set; } = new List<Meet>();
+        public List<Meet> Meets { get; set; } = new();
     }
 }

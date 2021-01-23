@@ -22,32 +22,26 @@ namespace CloverleafTrack.Models
         {
             get
             {
-                if (TrackEvent is not null)
+                if (TrackEvent is null)
                 {
-                    if (TrackEvent.RunningEvent)
-                    {
-                        var minutes = (float)Minutes.GetValueOrDefault(0);
-                        var seconds = (float)Seconds.GetValueOrDefault(0);
-                        var milliseconds = (float)Milliseconds.GetValueOrDefault(0);
-
-                        return $"{minutes:00}:{seconds:00}.{milliseconds:00}";
-                    }
-
-                    var feet = (float)Feet.GetValueOrDefault(0);
-                    var inches = (float)Inches.GetValueOrDefault(0);
-                    var fractionalInches = (float)FractionalInches.GetValueOrDefault(0);
-
-                    if (TrackEvent.Name.Contains("Discus"))
-                    {
-                        return $"{feet:000}-{inches:00}.{fractionalInches:00}";
-                    }
-                    else
-                    {
-                        return $"{feet:00}-{inches:00}.{fractionalInches:00}";
-                    }
+                    return string.Empty;
                 }
 
-                return string.Empty;
+                if (TrackEvent.RunningEvent)
+                {
+                    var minutes = (float)Minutes.GetValueOrDefault(0);
+                    var seconds = (float)Seconds.GetValueOrDefault(0);
+                    var milliseconds = (float)Milliseconds.GetValueOrDefault(0);
+
+                    return $"{minutes:00}:{seconds:00}.{milliseconds:00}";
+                }
+
+                var feet = (float)Feet.GetValueOrDefault(0);
+                var inches = (float)Inches.GetValueOrDefault(0);
+                var fractionalInches = (float)FractionalInches.GetValueOrDefault(0);
+
+                return TrackEvent.Name.Contains("Discus") ? $"{feet:000}-{inches:00}" : $"{feet:00}-{inches:00}.{fractionalInches:00}";
+
             }
         }
         [NotMapped]
@@ -55,19 +49,17 @@ namespace CloverleafTrack.Models
         {
             get
             {
-                if (TrackEvent is not null)
+                if (TrackEvent is null || !TrackEvent.RunningEvent)
                 {
-                    if (TrackEvent.RunningEvent)
-                    {
-                        var minutes = (float)Minutes.GetValueOrDefault(0);
-                        var seconds = (float)Seconds.GetValueOrDefault(0);
-                        var milliseconds = (float)Milliseconds.GetValueOrDefault(0);
-
-                        return (minutes * 60f) + seconds + (milliseconds / 100f);
-                    }
+                    return float.MaxValue;
                 }
 
-                return float.MaxValue;
+                var minutes = (float)Minutes.GetValueOrDefault(0);
+                var seconds = (float)Seconds.GetValueOrDefault(0);
+                var milliseconds = (float)Milliseconds.GetValueOrDefault(0);
+
+                return (minutes * 60f) + seconds + (milliseconds / 100f);
+
             }
         }
         [NotMapped]
@@ -75,19 +67,17 @@ namespace CloverleafTrack.Models
         {
             get
             {
-                if (TrackEvent is not null)
+                if (TrackEvent is null || TrackEvent.RunningEvent)
                 {
-                    if (!TrackEvent.RunningEvent)
-                    {
-                        var feet = (float)Feet.GetValueOrDefault(0);
-                        var inches = (float)Inches.GetValueOrDefault(0);
-                        var fractionalInches = (float)FractionalInches.GetValueOrDefault(0);
-
-                        return (feet * 12f) + inches + (fractionalInches / 100f);
-                    }
+                    return float.MaxValue;
                 }
 
-                return float.MaxValue;
+                var feet = (float)Feet.GetValueOrDefault(0);
+                var inches = (float)Inches.GetValueOrDefault(0);
+                var fractionalInches = (float)FractionalInches.GetValueOrDefault(0);
+
+                return (feet * 12f) + inches + (fractionalInches / 100f);
+
             }
         }
         public TrackEvent TrackEvent { get; set; }

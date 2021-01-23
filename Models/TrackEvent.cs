@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Security.Policy;
 using System.Web;
 
 namespace CloverleafTrack.Models
@@ -17,6 +16,6 @@ namespace CloverleafTrack.Models
         [NotMapped] public string DisplayName => Gender ? $"Girls {Name}" : $"Boys {Name}";
         [NotMapped] public string UrlName => Gender ? $"girls-{HttpUtility.UrlEncode(Name.Replace(" ", "-").ToLower())}" : $"boys-{HttpUtility.UrlEncode(Name.Replace(" ", "-").ToLower())}";
 
-        public List<Performance> Performances { get; set; }
+        public List<Performance> Performances { get; set; } = new();
     }
 }
