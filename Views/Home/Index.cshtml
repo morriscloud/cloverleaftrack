@@ -1,4 +1,6 @@
-﻿@{
+﻿@model HomeViewModel 
+
+@{
     ViewData["Title"] = "Home";
 }
 
@@ -21,5 +23,9 @@
 </p>
 
 <p>
-    This website has the statistics from (at least) this season of the Cloverleaf Track and Field team. Enjoy!
+    In total, there are <strong>@Model.PerformanceCount</strong> performances for <strong>@Model.AthleteCount</strong> athletes from <strong>@Model.MeetCount</strong> meets across <strong>@Model.SeasonCount</strong> seasons of Cloverleaf Track.
+</p>
+
+<p>
+    This website was last updated on @Model.LastUpdated.ToString("D") at @Model.LastUpdated.ToString("h:mm:ss tt")
 </p>

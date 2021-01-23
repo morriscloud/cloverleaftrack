@@ -9,9 +9,11 @@ using Microsoft.Extensions.Options;
 
 using MoreLinq;
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CloverleafTrack.Controllers
@@ -29,16 +31,22 @@ namespace CloverleafTrack.Controllers
         }
 
         [Route("")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index(CancellationToken cancellationToken)
         {
-            return View();
+            var performanceCount = await db.Performances.CountAsync(cancellationToken);
+            var meetCount = await db.Meets.CountAsync(cancellationToken);
+            var seasonCount = await db.Seasons.CountAsync(cancellationToken);
+            var athleteCount = await db.Athletes.CountAsync(cancellationToken);
+
+            var viewModel = new HomeViewModel(performanceCount, meetCount, seasonCount, athleteCount, DateTime.Now);
+            return View(viewModel);
         }
 
         [Route("leaderboard")]
-        public async Task<IActionResult> Leaderboard()
+        public async Task<IActionResult> Leaderboard(CancellationToken cancellationToken)
         {
-            var boysEvents = await db.TrackEvents.Where(t => !t.Gender).OrderBy(t => t.SortOrder).ToListAsync();
-            var girlsEvents = await db.TrackEvents.Where(t => t.Gender).OrderBy(t => t.SortOrder).ToListAsync();
+            var boysEvents = await db.TrackEvents.Where(t => !t.Gender).OrderBy(t => t.SortOrder).ToListAsync(cancellationToken);
+            var girlsEvents = await db.TrackEvents.Where(t => t.Gender).OrderBy(t => t.SortOrder).ToListAsync(cancellationToken);
 
             var boysEventsWithTopPerformance = new Dictionary<TrackEvent, KeyValuePair<Performance, List<Athlete>>>();
             var girlsEventsWithTopPerformance = new Dictionary<TrackEvent, KeyValuePair<Performance, List<Athlete>>>();
@@ -49,7 +57,7 @@ namespace CloverleafTrack.Controllers
                     .Include(p => p.Athlete)
                     .Include(p => p.Meet)
                     .Where(p => p.TrackEventId == ev.Id)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 var performance = ev.RunningEvent ? performances.MinBy(p => p.TotalSeconds).FirstOrDefault() : performances.MaxBy(p => p.TotalInches).FirstOrDefault();
                 KeyValuePair<Performance, List<Athlete>> performanceDictionary;
@@ -61,7 +69,7 @@ namespace CloverleafTrack.Controllers
                         .Include(p => p.Meet)
                         .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
                         .Select(p => p.Athlete)
-                        .ToListAsync();
+                        .ToListAsync(cancellationToken);
 
                     performanceDictionary = new KeyValuePair<Performance, List<Athlete>>(performance, matching);
                 }
@@ -79,7 +87,7 @@ namespace CloverleafTrack.Controllers
                     .Include(p => p.Athlete)
                     .Include(p => p.Meet)
                     .Where(p => p.TrackEventId == ev.Id)
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
 
                 var performance = ev.RunningEvent ? performances.MinBy(p => p.TotalSeconds).FirstOrDefault() : performances.MaxBy(p => p.TotalInches).FirstOrDefault();
                 KeyValuePair<Performance, List<Athlete>> performanceDictionary;
@@ -91,7 +99,7 @@ namespace CloverleafTrack.Controllers
                         .Include(p => p.Meet)
                         .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
                         .Select(p => p.Athlete)
-                        .ToListAsync();
+                        .ToListAsync(cancellationToken);
 
                     performanceDictionary = new KeyValuePair<Performance, List<Athlete>>(performance, matching);
                 }
