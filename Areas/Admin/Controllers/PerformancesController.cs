@@ -1,13 +1,13 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-
-using CloverleafTrack.Data;
+﻿using CloverleafTrack.Data;
 using CloverleafTrack.Models;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CloverleafTrack.Areas.Admin.Controllers
 {
@@ -21,9 +21,20 @@ namespace CloverleafTrack.Areas.Admin.Controllers
             this.db = db;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string currentFilter, string searchString, int? pageNumber)
         {
-            var cloverleafTrackDataContext = db.Performances
+            if (searchString != null)
+            {
+                pageNumber = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+
+            ViewData["CurrentFilter"] = searchString;
+
+            IQueryable<Performance> performances = db.Performances
                 .Include(p => p.Athlete)
                 .Include(p => p.Meet)
                 .Include(p => p.TrackEvent)
@@ -32,7 +43,14 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 .ThenBy(p => p.TrackEvent.SortOrder)
                 .ThenBy(p => p.Meet.Date);
 
-            return View(await cloverleafTrackDataContext.ToListAsync());
+            if (!string.IsNullOrWhiteSpace(searchString))
+            {
+                performances = performances
+                    .Where(p => p.Athlete.FirstName.Contains(searchString) || p.Athlete.LastName.Contains(searchString));
+            }
+
+            int pageSize = 10;
+            return View(await PaginatedList<Performance>.CreateAsync(performances.AsNoTracking(), pageNumber ?? 1, pageSize));
         }
 
         public async Task<IActionResult> Details(Guid? id)
