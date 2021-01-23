@@ -45,12 +45,13 @@ namespace CloverleafTrack.Controllers
         [Route("leaderboard")]
         public async Task<IActionResult> Leaderboard(CancellationToken cancellationToken)
         {
-            var boysEvents = await db.TrackEvents.Where(t => !t.Gender).OrderBy(t => t.SortOrder).ToListAsync(cancellationToken);
-            var girlsEvents = await db.TrackEvents.Where(t => t.Gender).OrderBy(t => t.SortOrder).ToListAsync(cancellationToken);
+            var boysEvents = await db.TrackEvents.Where(t => !t.Gender && t.Performances.Count > 0).OrderBy(t => t.SortOrder).ToListAsync(cancellationToken);
+            var girlsEvents = await db.TrackEvents.Where(t => t.Gender && t.Performances.Count > 0).OrderBy(t => t.SortOrder).ToListAsync(cancellationToken);
 
             var boysEventsWithTopPerformance = new Dictionary<TrackEvent, KeyValuePair<Performance, List<Athlete>>>();
             var girlsEventsWithTopPerformance = new Dictionary<TrackEvent, KeyValuePair<Performance, List<Athlete>>>();
 
+            KeyValuePair<Performance, List<Athlete>> performanceDictionary;
             foreach (var ev in boysEvents)
             {
                 var performances = await db.Performances
@@ -60,7 +61,6 @@ namespace CloverleafTrack.Controllers
                     .ToListAsync(cancellationToken);
 
                 var performance = ev.RunningEvent ? performances.MinBy(p => p.TotalSeconds).FirstOrDefault() : performances.MaxBy(p => p.TotalInches).FirstOrDefault();
-                KeyValuePair<Performance, List<Athlete>> performanceDictionary;
 
                 if (ev.RelayEvent)
                 {
@@ -90,7 +90,6 @@ namespace CloverleafTrack.Controllers
                     .ToListAsync(cancellationToken);
 
                 var performance = ev.RunningEvent ? performances.MinBy(p => p.TotalSeconds).FirstOrDefault() : performances.MaxBy(p => p.TotalInches).FirstOrDefault();
-                KeyValuePair<Performance, List<Athlete>> performanceDictionary;
 
                 if (ev.RelayEvent)
                 {
