@@ -23,33 +23,63 @@
     </h1>
 </div>
 
-@foreach (var season in Model.Seasons.Where(s => s.Meets.Count > 0))
+@foreach (var season in Model.Seasons.Where(s => s.Item2.Count > 0 || s.Item3.Count > 0))
 {
-    <div class="shadow rounded bg-light p-3 pb-0 mb-1">
-        <h3 class="border-bottom pb-1">
-            @season.Name
-        </h3>
+<div class="shadow rounded bg-light p-3 pb-0 mb-1">
+    <h3 class="border-bottom pb-1">
+        @season.Item1.Name Season
+    </h3>
+    @if (season.Item2.Count > 0 && season.Item2.Any(m => m.Performances.Count > 0))
+    {
+        <h4 class="border-bottom pb-1">@season.Item1.Name Indoor Meets</h4>
         <table class="table table-hover table-striped table-sm event-performances">
-            <caption>@season.Name Meets</caption>
+            <caption>@season.Item1.Name Indoor Meets</caption>
             <thead class="table-dark">
-            <tr>
-                <th class="col-9">Meet</th>
-                <th class="col-3">Date</th>
-            </tr>
+                <tr>
+                    <th class="col-9">Meet</th>
+                    <th class="col-3">Date</th>
+                </tr>
             </thead>
             <tbody>
-            @foreach (var meet in season.Meets.Where(m => m.Performances.Count > 0).OrderBy(m => m.Date))
-            {
-                <tr>
-                    <td class="text-nowrap align-middle">
-                        <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@meet.UrlName">
-                            @meet.Name
-                        </a>
-                    </td>
-                    <td class="align-middle">@meet.Date.ToString("MM/dd/yyyy")</td>
-                </tr>
-            }
+                @foreach (var indoorMeet in season.Item2.Where(m => m.Performances.Count > 0).OrderBy(m => m.Date))
+                {
+                    <tr>
+                        <td class="text-nowrap align-middle">
+                            <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@indoorMeet.UrlName">
+                                @indoorMeet.Name @@ @indoorMeet.Location
+                            </a>
+                        </td>
+                        <td class="align-middle">@indoorMeet.Date.ToString("MM/dd/yyyy")</td>
+                    </tr>
+                }
             </tbody>
         </table>
-    </div>
+    }
+    @if (season.Item3.Count > 0 && season.Item3.Any(m => m.Performances.Count > 0))
+    {
+        <h4 class="border-bottom pb-1">@season.Item1.Name Outdoor Meets</h4>
+        <table class="table table-hover table-striped table-sm event-performances">
+            <caption>@season.Item1.Name Outdoor Meets</caption>
+            <thead class="table-dark">
+                <tr>
+                    <th class="col-9">Meet</th>
+                    <th class="col-3">Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var outdoorMeet in season.Item3.Where(m => m.Performances.Count > 0).OrderBy(m => m.Date))
+                {
+                    <tr>
+                        <td class="text-nowrap align-middle">
+                            <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@outdoorMeet.UrlName">
+                                @outdoorMeet.Name @@ @outdoorMeet.Location
+                            </a>
+                        </td>
+                        <td class="align-middle">@outdoorMeet.Date.ToString("MM/dd/yyyy")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
 }

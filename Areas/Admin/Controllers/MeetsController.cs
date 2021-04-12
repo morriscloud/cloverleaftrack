@@ -31,6 +31,20 @@ namespace CloverleafTrack.Areas.Admin.Controllers
             return View(await cloverleafTrackDataContext.ToListAsync());
         }
 
+        public async Task<IActionResult> Done(Guid? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var meet = await db.Meets.FirstOrDefaultAsync(m => m.Id == id);
+            meet.AllResultsIn = true;
+            await db.SaveChangesAsync();
+
+            return RedirectToAction("Index");
+        }
+
         public async Task<IActionResult> Details(Guid? id)
         {
             if (id == null)
@@ -60,7 +74,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Date,Name,SeasonId,AllResultsIn")] Meet meet)
+        public async Task<IActionResult> Create([Bind("Date,Name,SeasonId,Outdoor,Location,AllResultsIn")] Meet meet)
         {
             if (ModelState.IsValid)
             {
@@ -95,7 +109,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Date,Name,SeasonId,AllResultsIn")] Meet meet)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Date,Name,SeasonId,Outdoor,Location,AllResultsIn")] Meet meet)
         {
             if (id != meet.Id)
             {

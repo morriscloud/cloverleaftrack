@@ -1,4 +1,11 @@
-﻿using CloverleafTrack.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using CloverleafTrack.Data;
 using CloverleafTrack.Models;
 using CloverleafTrack.Options;
 using CloverleafTrack.ViewModels;
@@ -8,13 +15,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using MoreLinq;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CloverleafTrack.Controllers
 {
@@ -245,7 +245,16 @@ namespace CloverleafTrack.Controllers
                 .OrderByDescending(s => s.Name)
                 .ToListAsync();
 
-            var viewModel = new MeetsViewModel(seasons);
+            var objectModel = new List<Tuple<Season, List<Meet>, List<Meet>>>();
+            foreach (var season in seasons)
+            {
+                var indoorMeets = season.Meets.Where(m => !m.Outdoor).ToList();
+                var outdoorMeets = season.Meets.Where(m => m.Outdoor).ToList();
+
+                objectModel.Add(new Tuple<Season, List<Meet>, List<Meet>>(season, indoorMeets, outdoorMeets));
+            }
+
+            var viewModel = new MeetsViewModel(objectModel);
             return View(viewModel);
         }
 

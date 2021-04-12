@@ -23,10 +23,22 @@
             @Html.DisplayFor(model => model.Name)
         </dd>
         <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Location)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Location)
+        </dd>
+        <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Season)
         </dt>
         <dd class="col-sm-10">
             @Html.DisplayFor(model => model.Season.Name)
+        </dd>
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.Outdoor)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.Outdoor)
         </dd>
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.AllResultsIn)

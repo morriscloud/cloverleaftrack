@@ -34,35 +34,68 @@
         <div class="col-lg-8">
             @foreach (var eventPerformance in Model.EventPerformances)
             {
-                <div class="shadow rounded bg-light p-3 pb-0 mb-3">
-                    <h3 class="border-bottom pb-1">
-                        @eventPerformance.Key.Name
-                    </h3>
+            <div class="shadow rounded bg-light p-3 pb-0 mb-3">
+                <h3 class="border-bottom pb-1">
+                    @eventPerformance.Key.Name
+                </h3>
+                @if (eventPerformance.Value.Any(p => p.Meet.Outdoor))
+                {
+                    <h4 class="border-bottom pb-1">@eventPerformance.Key.Name Outdoor Results</h4>
                     <table class="table table-hover table-striped table-sm event-performances">
-                        <caption>@Model.Athlete.Name's @eventPerformance.Key.Name Results</caption>
+                        <caption>@Model.Athlete.Name's @eventPerformance.Key.Name Outdoor Results</caption>
                         <thead class="table-dark">
-                        <tr>
-                            <th class="col-3">Performance</th>
-                            <th class="col-3">Date</th>
-                            <th>Meet</th>
-                        </tr>
+                            <tr>
+                                <th class="col-3">Performance</th>
+                                <th class="col-3">Date</th>
+                                <th>Meet</th>
+                            </tr>
                         </thead>
                         <tbody>
-                        @foreach (var performance in eventPerformance.Value)
-                        {
+                            @foreach (var performance in eventPerformance.Value.Where(p => p.Meet.Outdoor))
+                            {
                             <tr>
                                 <td class="text-nowrap align-middle">@performance.PerformanceFormatted</td>
                                 <td class="align-middle">@performance.Meet.Date.ToString("MM/dd/yyyy")</td>
                                 <td class="align-middle">
                                     <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@performance.Meet.UrlName">
-                                        @performance.Meet.Name
+                                        @performance.Meet.Name @@ @performance.Meet.Location
                                     </a>
                                 </td>
                             </tr>
-                        }
+                            }
                         </tbody>
                     </table>
-                </div>
+                }
+                @if (eventPerformance.Value.Any(p => !p.Meet.Outdoor))
+                {
+                    <h4 class="border-bottom pb-1">@eventPerformance.Key.Name Indoor Results</h4>
+                    <table class="table table-hover table-striped table-sm event-performances">
+                        <caption>@Model.Athlete.Name's @eventPerformance.Key.Name Indoor Results</caption>
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="col-3">Performance</th>
+                                <th class="col-3">Date</th>
+                                <th>Meet</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var performance in eventPerformance.Value.Where(p => !p.Meet.Outdoor))
+                            {
+                            <tr>
+                                <td class="text-nowrap align-middle">@performance.PerformanceFormatted</td>
+                                <td class="align-middle">@performance.Meet.Date.ToString("MM/dd/yyyy")</td>
+                                <td class="align-middle">
+                                    <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@performance.Meet.UrlName">
+                                        @performance.Meet.Name @@ @performance.Meet.Location
+                                    </a>
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+
+            </div>
             }
         </div>
         <div class="col-lg-4">
@@ -75,63 +108,135 @@
                     <h4 class="border-bottom pb-1">
                         @seasonGroup.Key.Name Season
                     </h4>
-                    <table class="table table-hover table-striped table-sm">
-                        <caption>@Model.Athlete.Name's @seasonGroup.Key.Name Season PRs</caption>
-                        <thead class="table-dark">
-                        <tr>
-                            <th class="col-3">Event</th>
-                            <th class="col-2">Performance</th>
-                            <th class="col-2">Date</th>
-                            <th>Meet</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        @foreach (var seasonPr in seasonGroup.Value)
-                        {
-                            <tr>
-                                <th class="align-middle">@seasonPr.Key.Name</th>
-                                <td class="text-nowrap align-middle">@seasonPr.Value.PerformanceFormatted</td>
-                                <td class="align-middle">@seasonPr.Value.Meet.Date.ToString("MM/dd/yyyy")</td>
-                                <td class="align-middle">
-                                    <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@seasonPr.Value.Meet.UrlName">
-                                        @seasonPr.Value.Meet.Name
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                         </tbody>
-                    </table>
+                    @if (seasonGroup.Value.Any(m => m.Value.Meet.Outdoor))
+                    {
+                        <h5 class="border-bottom pb-1">
+                            @seasonGroup.Key.Name Outdoor Season PRs
+                        </h5>
+                        <table class="table table-hover table-striped table-sm">
+                            <caption>@Model.Athlete.Name's @seasonGroup.Key.Name Outdoor Season PRs</caption>
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="col-3">Event</th>
+                                    <th class="col-2">Performance</th>
+                                    <th class="col-2">Date</th>
+                                    <th>Meet</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var seasonPr in seasonGroup.Value.Where(m => m.Value.Meet.Outdoor))
+                                {
+                                    <tr>
+                                        <th class="align-middle">@seasonPr.Key.Name</th>
+                                        <td class="text-nowrap align-middle">@seasonPr.Value.PerformanceFormatted</td>
+                                        <td class="align-middle">@seasonPr.Value.Meet.Date.ToString("MM/dd/yyyy")</td>
+                                        <td class="align-middle">
+                                            <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@seasonPr.Value.Meet.UrlName">
+                                                @seasonPr.Value.Meet.Name @@ @seasonPr.Value.Meet.Location
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    @if (seasonGroup.Value.Any(m => !m.Value.Meet.Outdoor))
+                    {
+                        <h5 class="border-bottom pb-1">
+                            @seasonGroup.Key.Name Indoor Season PRs
+                        </h5>
+                        <table class="table table-hover table-striped table-sm">
+                            <caption>@Model.Athlete.Name's @seasonGroup.Key.Name Indoor Season PRs</caption>
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="col-3">Event</th>
+                                    <th class="col-2">Performance</th>
+                                    <th class="col-2">Date</th>
+                                    <th>Meet</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var seasonPr in seasonGroup.Value.Where(m => !m.Value.Meet.Outdoor))
+                                {
+                                    <tr>
+                                        <th class="align-middle">@seasonPr.Key.Name</th>
+                                        <td class="text-nowrap align-middle">@seasonPr.Value.PerformanceFormatted</td>
+                                        <td class="align-middle">@seasonPr.Value.Meet.Date.ToString("MM/dd/yyyy")</td>
+                                        <td class="align-middle">
+                                            <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@seasonPr.Value.Meet.UrlName">
+                                                @seasonPr.Value.Meet.Name @@ @seasonPr.Value.Meet.Location
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
                 }
             </div>
 
             <div class="shadow rounded bg-light p-3">
                 <h3 class="border-bottom pb-1">Lifetime PRs</h3>
-                <table class="table table-hover table-striped table-sm">
-                    <caption>@Model.Athlete.Name's Lifetime PRs</caption>
-                    <thead class="table-dark">
-                    <tr>
-                        <th class="col-3">Event</th>
-                        <th class="col-2">Performance</th>
-                        <th class="col-2">Date</th>
-                        <th>Meet</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var lifetimePr in Model.LifetimePrs)
-                    {
-                        <tr>
-                            <th class="align-middle">@lifetimePr.Key.Name</th>
-                            <td class="text-nowrap align-middle">@lifetimePr.Value.PerformanceFormatted</td>
-                            <td class="align-middle">@lifetimePr.Value.Meet.Date.ToString("MM/dd/yyyy")</td>
-                            <td class="align-middle">
-                                <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@lifetimePr.Value.Meet.UrlName">
-                                    @lifetimePr.Value.Meet.Name
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
+                @if (Model.LifetimePrs.Any(m => m.Value.Meet.Outdoor))
+                {
+                    <h4 class="border-bottom pb-1">Outdoor Lifetime PRs</h4>
+                    <table class="table table-hover table-striped table-sm">
+                        <caption>@Model.Athlete.Name's Outdoor Lifetime PRs</caption>
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="col-3">Event</th>
+                                <th class="col-2">Performance</th>
+                                <th class="col-2">Date</th>
+                                <th>Meet</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var lifetimePr in Model.LifetimePrs.Where(m => m.Value.Meet.Outdoor))
+                            {
+                                <tr>
+                                    <th class="align-middle">@lifetimePr.Key.Name</th>
+                                    <td class="text-nowrap align-middle">@lifetimePr.Value.PerformanceFormatted</td>
+                                    <td class="align-middle">@lifetimePr.Value.Meet.Date.ToString("MM/dd/yyyy")</td>
+                                    <td class="align-middle">
+                                        <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@lifetimePr.Value.Meet.UrlName">
+                                            @lifetimePr.Value.Meet.Name @@ @lifetimePr.Value.Meet.Location
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                @if (Model.LifetimePrs.Any(m => !m.Value.Meet.Outdoor))
+                {
+                    <h4 class="border-bottom pb-1">Indoor Lifetime PRs</h4>
+                    <table class="table table-hover table-striped table-sm">
+                        <caption>@Model.Athlete.Name's Indoor Lifetime PRs</caption>
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="col-3">Event</th>
+                                <th class="col-2">Performance</th>
+                                <th class="col-2">Date</th>
+                                <th>Meet</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var lifetimePr in Model.LifetimePrs.Where(m => !m.Value.Meet.Outdoor))
+                            {
+                                <tr>
+                                    <th class="align-middle">@lifetimePr.Key.Name</th>
+                                    <td class="text-nowrap align-middle">@lifetimePr.Value.PerformanceFormatted</td>
+                                    <td class="align-middle">@lifetimePr.Value.Meet.Date.ToString("MM/dd/yyyy")</td>
+                                    <td class="align-middle">
+                                        <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@lifetimePr.Value.Meet.UrlName">
+                                            @lifetimePr.Value.Meet.Name @@ @lifetimePr.Value.Meet.Location
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
             </div>
         </div>
     </div>

@@ -24,6 +24,18 @@
     <h1 class="display-1">
         @Model.Meet.Name Details
     </h1>
+    @if (Model.Meet.Outdoor)
+    {
+        <p class="lead">
+            Outdoor Meet @@ @Model.Meet.Location
+        </p>
+    }
+    @if (!Model.Meet.Outdoor)
+    {
+        <p class="lead">
+            Indoor Meet @@ @Model.Meet.Location
+        </p>
+    }
     <p class="lead">
         @Model.Meet.Date.ToLongDateString()
     </p>

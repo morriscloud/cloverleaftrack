@@ -27,5 +27,5 @@
 </p>
 
 <p>
-    This website was last updated on @Model.LastUpdated.ToString("D") at @Model.LastUpdated.ToString("h:mm:ss tt")
+    This website was last updated on @Model.LastUpdated.ToLocalTime().ToString("D") at @Model.LastUpdated.ToLocalTime().ToString("h:mm:ss tt")
 </p>
