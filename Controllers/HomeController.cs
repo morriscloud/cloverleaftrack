@@ -134,18 +134,37 @@ namespace CloverleafTrack.Controllers
             performances = selectedEvent.RunningEvent ? performances.OrderBy(p => p.TotalSeconds).ToList() : performances.OrderByDescending(p => p.TotalInches).ToList();
             if (selectedEvent.RelayEvent)
             {
-                performances = performances.DistinctBy(p => p.TotalSeconds).ToList();
-
-                foreach (var performance in performances)
+                if (selectedEvent.RunningEvent)
                 {
-                    var matching = await db.Performances
-                        .Include(p => p.Athlete)
-                        .Include(p => p.Meet)
-                        .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
-                        .Select(p => p.Athlete)
-                        .ToListAsync();
+                    performances = performances.DistinctBy(p => p.TotalSeconds).ToList();
 
-                    performancesDictionary.Add(performance, matching);
+                    foreach (var performance in performances)
+                    {
+                        var matching = await db.Performances
+                            .Include(p => p.Athlete)
+                            .Include(p => p.Meet)
+                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
+                            .Select(p => p.Athlete)
+                            .ToListAsync();
+
+                        performancesDictionary.Add(performance, matching);
+                    }
+                }
+                else
+                {
+                    performances = performances.DistinctBy(p => p.TotalInches).ToList();
+
+                    foreach (var performance in performances)
+                    {
+                        var matching = await db.Performances
+                            .Include(p => p.Athlete)
+                            .Include(p => p.Meet)
+                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Feet == performance.Feet && p.Inches == performance.Inches && p.FractionalInches == performance.FractionalInches)
+                            .Select(p => p.Athlete)
+                            .ToListAsync();
+
+                        performancesDictionary.Add(performance, matching);
+                    }
                 }
             }
             else
