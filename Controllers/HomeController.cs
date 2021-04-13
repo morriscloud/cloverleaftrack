@@ -224,35 +224,97 @@ namespace CloverleafTrack.Controllers
                 return NotFound();
             }
 
-            var lifetimePrs = new Dictionary<TrackEvent, Performance>();
+            var lifetimePrs = GetLifetimePrs(athlete);
+            var seasonPrs = GetSeasonPrs(athlete);
+            var eventPerformances = GetEventPerformances(athlete);
+
+            return View(new AthleteViewModel(athlete, lifetimePrs, seasonPrs, eventPerformances));
+        }
+
+        private List<LifetimePr> GetLifetimePrs(Athlete athlete)
+        {
+            var lifetimePrs = new List<LifetimePr>();
             var groupedPerformances = athlete.Performances.GroupBy(p => p.TrackEvent).OrderBy(g => g.Key.SortOrder);
             foreach (var group in groupedPerformances)
             {
-                var best = group.Key.RunningEvent ? group.MinBy(p => p.TotalSeconds).First() : group.MaxBy(p => p.TotalInches).First();
-                lifetimePrs.Add(group.Key, best);
+                Performance outdoorLifetimePr = null;
+                Performance indoorLifetimePr = null;
+
+                if (group.Any(p => p.Meet.Outdoor))
+                {
+                    outdoorLifetimePr = group.Key.RunningEvent ? group.Where(p => p.Meet.Outdoor).MinBy(p => p.TotalSeconds).First() : group.Where(p => p.Meet.Outdoor).MaxBy(p => p.TotalInches).First();
+                }
+
+                if (group.Any(p => !p.Meet.Outdoor))
+                {
+                    indoorLifetimePr = group.Key.RunningEvent ? group.Where(p => !p.Meet.Outdoor).MinBy(p => p.TotalSeconds).First() : group.Where(p => !p.Meet.Outdoor).MaxBy(p => p.TotalInches).First();
+                }
+
+                var lifetimePr = new LifetimePr(group.Key, outdoorLifetimePr, indoorLifetimePr);
+                lifetimePrs.Add(lifetimePr);
             }
 
-            var seasonPrs = new Dictionary<Season, Dictionary<TrackEvent, Performance>>();
+            return lifetimePrs;
+        }
+
+        private List<SeasonPr> GetSeasonPrs(Athlete athlete)
+        {
+            var seasonPrs = new List<SeasonPr>();
+
             var performancesGroupedBySeason = athlete.Performances.GroupBy(p => p.Meet.Season).OrderByDescending(g => g.Key.Name);
             foreach (var group in performancesGroupedBySeason)
             {
-                var seasonBestPerformances = new Dictionary<TrackEvent, Performance>();
-                var seasonPerformancesGroupedByTrackEvent = group.GroupBy(p => p.TrackEvent).OrderBy(g => g.Key.SortOrder);
-                foreach (var secondGroup in seasonPerformancesGroupedByTrackEvent)
+                var eventPrs = new List<EventPr>();
+
+                var seasonPerformancesGroupedByEvent = group.GroupBy(p => p.TrackEvent).OrderBy(p => p.Key.SortOrder);
+                foreach (var eventGroup in seasonPerformancesGroupedByEvent)
                 {
-                    var best = secondGroup.Key.RunningEvent ? secondGroup.MinBy(p => p.TotalSeconds).First() : secondGroup.MaxBy(p => p.TotalInches).First();
-                    seasonBestPerformances.Add(secondGroup.Key, best);
+                    Performance outdoorSeasonPr = null;
+                    Performance indoorSeasonPr = null;
+
+                    if (eventGroup.Any(p => p.Meet.Outdoor))
+                    {
+                        outdoorSeasonPr = eventGroup.Key.RunningEvent ? eventGroup.Where(p => p.Meet.Outdoor).MinBy(p => p.TotalSeconds).FirstOrDefault() : eventGroup.Where(p => p.Meet.Outdoor).MaxBy(p => p.TotalInches).FirstOrDefault();
+                    }
+
+                    if (eventGroup.Any(p => !p.Meet.Outdoor))
+                    {
+                        indoorSeasonPr = eventGroup.Key.RunningEvent ? eventGroup.Where(p => !p.Meet.Outdoor).MinBy(p => p.TotalSeconds).FirstOrDefault() : eventGroup.Where(p => !p.Meet.Outdoor).MaxBy(p => p.TotalInches).FirstOrDefault();
+                    }
+
+                    var eventPr = new EventPr(eventGroup.Key, outdoorSeasonPr, indoorSeasonPr);
+                    eventPrs.Add(eventPr);
                 }
 
-                seasonPrs.Add(group.Key, seasonBestPerformances);
+                var seasonPr = new SeasonPr(group.Key, eventPrs);
+                seasonPrs.Add(seasonPr);
             }
 
-            var performancesGroupedByEvent = athlete.Performances.GroupBy(p => p.TrackEvent).OrderBy(g => g.Key.SortOrder);
-            var eventPerformances = performancesGroupedByEvent.ToDictionary(eventGrouping => eventGrouping.Key, eventGrouping => eventGrouping.Key.RunningEvent
-                ? eventGrouping.OrderBy(x => x.TotalSeconds)
-                : eventGrouping.OrderByDescending(p => p.TotalInches));
+            return seasonPrs;
+        }
 
-            return View(new AthleteViewModel(athlete, lifetimePrs, seasonPrs, eventPerformances));
+        private List<EventPerformance> GetEventPerformances(Athlete athlete)
+        {
+            var eventPerformances = new List<EventPerformance>();
+
+            var performancesGroupedByEvent = athlete.Performances.GroupBy(p => p.TrackEvent).OrderBy(p => p.Key.SortOrder);
+            foreach (var eventGroup in performancesGroupedByEvent)
+            {
+                IOrderedEnumerable<Performance> performances;
+                if (eventGroup.Key.RunningEvent)
+                {
+                    performances = eventGroup.OrderBy(p => p.TotalSeconds);
+                }
+                else
+                {
+                    performances = eventGroup.OrderByDescending(p => p.TotalInches);
+                }
+
+                var eventPerformance = new EventPerformance(eventGroup.Key, performances);
+                eventPerformances.Add(eventPerformance);
+            }
+
+            return eventPerformances;
         }
 
         [Route("meets")]

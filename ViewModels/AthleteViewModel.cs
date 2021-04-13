@@ -1,9 +1,8 @@
-﻿using CloverleafTrack.Models;
+﻿using System.Collections.Generic;
 
-using System.Collections.Generic;
-using System.Linq;
+using CloverleafTrack.Models;
 
 namespace CloverleafTrack.ViewModels
 {
-    public record AthleteViewModel(Athlete Athlete, Dictionary<TrackEvent, Performance> LifetimePrs, Dictionary<Season, Dictionary<TrackEvent, Performance>> SeasonPrs, Dictionary<TrackEvent, IOrderedEnumerable<Performance>> EventPerformances);
+    public record AthleteViewModel(Athlete Athlete, List<LifetimePr> LifetimePrs, List<SeasonPr> SeasonPrs, List<EventPerformance> Performances);
 }
