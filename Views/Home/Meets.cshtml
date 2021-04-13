@@ -41,7 +41,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var outdoorMeet in season.Item3.Where(m => m.Performances.Count > 0).OrderBy(m => m.Date))
+                @foreach (var outdoorMeet in season.Item3.Where(m => m.Performances.Count > 0).OrderByDescending(m => m.Date))
                 {
                     <tr>
                         <td class="text-nowrap align-middle">
@@ -67,7 +67,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var indoorMeet in season.Item2.Where(m => m.Performances.Count > 0).OrderBy(m => m.Date))
+                @foreach (var indoorMeet in season.Item2.Where(m => m.Performances.Count > 0).OrderByDescending(m => m.Date))
                 {
                     <tr>
                         <td class="text-nowrap align-middle">
