@@ -100,7 +100,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 performance.Id = Guid.NewGuid();
                 db.Add(performance);
                 await db.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                //return RedirectToAction(nameof(Index));
             }
 
             ViewData[nameof(Performance.TrackEventId)] = new SelectList(db.TrackEvents.OrderBy(t => t.Gender).ThenBy(t => t.SortOrder), nameof(TrackEvent.Id), nameof(TrackEvent.DisplayName), performance.TrackEventId);

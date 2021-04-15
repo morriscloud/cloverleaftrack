@@ -1,7 +1,14 @@
 ﻿@model EventLeaderboardViewModel
 
 @{
-    ViewBag.Title = $"{Model.TrackEvent.DisplayName} Leaderboard";
+    @if (Model.Prs)
+    {
+        ViewBag.Title = $"{Model.TrackEvent.DisplayName} PR Leaderboard";
+    }
+    else
+    {
+        ViewBag.Title = $"{Model.TrackEvent.DisplayName} Leaderboard";
+    }
 }
 
 <div class="border-bottom pt-3">
@@ -14,7 +21,14 @@
                 <a asp-area="" asp-controller="Home" asp-action="Leaderboard">Leaderboard</a>
             </li>
             <li class="breadcrumb-item active" aria-current="page">
-                @Model.TrackEvent.DisplayName
+                @if (Model.Prs)
+                {
+                    @Model.TrackEvent.DisplayName @:PRs
+                }
+                else
+                {
+                    @Model.TrackEvent.DisplayName
+                }
             </li>
         </ol>
     </nav>
@@ -22,16 +36,58 @@
 
 <div class="border-bottom mb-3">
     <h1 class="display-1">
-        @Model.TrackEvent.DisplayName Leaderboard
+        @if (Model.Prs)
+        {
+            @Model.TrackEvent.DisplayName @:PR Leaderboard
+        }
+        else
+        {
+            @Model.TrackEvent.DisplayName @:Leaderboard
+        }
     </h1>
 </div>
 
+<p class="lead">
+    @if (Model.Prs)
+    {
+        <div class="btn-group">
+            <a class="btn btn-outline-dark" asp-controller="Home" asp-action="EventLeaderboard" asp-route-eventName="@Model.TrackEvent.UrlName">All Stats</a>
+            <a class="btn btn-dark active" aria-current="page" asp-controller="Home" asp-action="PrEventLeaderboard" asp-route-eventName="@Model.TrackEvent.UrlName">PRs Only</a>
+        </div>
+    }
+    else
+    {
+        <div class="btn-group">
+            <a class="btn btn-dark active" aria-current="page" asp-controller="Home" asp-action="EventLeaderboard" asp-route-eventName="@Model.TrackEvent.UrlName">All Stats</a>
+            <a class="btn btn-outline-dark" asp-controller="Home" asp-action="PrEventLeaderboard" asp-route-eventName="@Model.TrackEvent.UrlName">PRs Only</a>
+        </div>
+    }
+</p>
+
 @if (Model.Performances.Where(p => p.Key.Meet.Outdoor).Any())
 {
-    <h2 class="border-bottom pb-1">@Model.TrackEvent.DisplayName Outdoor Leaderboard</h2>
+<h2 class="border-bottom pb-1">
+    @if (Model.Prs)
+    {
+        @Model.TrackEvent.DisplayName @:Outdoor PR Leaderboard
+    }
+    else
+    {
+        @Model.TrackEvent.DisplayName @:Outdoor Leaderboard
+    }
+</h2>
     <div class="shadow rounded bg-light p-3 pb-0 mb-3">
         <table class="table table-hover table-striped table-sm event-performances">
-            <caption>@Model.TrackEvent.DisplayName Outdoor Leaderboard</caption>
+            <caption>
+                @if (Model.Prs)
+                {
+                    @Model.TrackEvent.DisplayName @:Outdoor PR Leaderboard
+                }
+                else
+                {
+                    @Model.TrackEvent.DisplayName @:Outdoor Leaderboard
+                }
+            </caption>
             <thead class="table-dark">
                 <tr>
                     <th class="text-center">#</th>
@@ -79,10 +135,28 @@
 
 @if (Model.Performances.Where(p => !p.Key.Meet.Outdoor).Any())
 {
-    <h2 class="border-bottom pb-1">@Model.TrackEvent.DisplayName Indoor Leaderboard</h2>
+<h2 class="border-bottom pb-1">
+    @if (Model.Prs)
+    {
+        @Model.TrackEvent.DisplayName @:Indoor PR Leaderboard
+    }
+    else
+    {
+        @Model.TrackEvent.DisplayName @:Indoor Leaderboard
+    }
+</h2>
     <div class="shadow rounded bg-light p-3 pb-0 mb-3">
         <table class="table table-hover table-striped table-sm event-performances">
-            <caption>@Model.TrackEvent.DisplayName Indoor Leaderboard</caption>
+            <caption>
+                @if (Model.Prs)
+                {
+                    @Model.TrackEvent.DisplayName @:Indoor PR Leaderboard
+                }
+                else
+                {
+                    @Model.TrackEvent.DisplayName @:Indoor Leaderboard
+                }
+            </caption>
             <thead class="table-dark">
                 <tr>
                     <th class="text-center">#</th>

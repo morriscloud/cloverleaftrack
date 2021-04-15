@@ -175,7 +175,115 @@ namespace CloverleafTrack.Controllers
                 }
             }
 
-            var viewModel = new EventLeaderboardViewModel(selectedEvent, performancesDictionary);
+            var viewModel = new EventLeaderboardViewModel(selectedEvent, performancesDictionary, false);
+
+            return View("EventLeaderboard", viewModel);
+        }
+
+        [Route("leaderboard/{eventName}/prs")]
+        public async Task<IActionResult> PrEventLeaderboard(string eventName)
+        {
+            var trackEvents = await db.TrackEvents.ToListAsync();
+            var selectedEvent = trackEvents.FirstOrDefault(t => t.UrlName == eventName);
+            if (selectedEvent == null)
+            {
+                return NotFound();
+            }
+
+            var performances = await db.Performances
+                .Include(p => p.Athlete)
+                .Include(p => p.Meet)
+                .Where(p => p.TrackEventId == selectedEvent.Id)
+                .ToListAsync();
+
+            var performancesDictionary = new Dictionary<Performance, List<Athlete>>();
+            performances = selectedEvent.RunningEvent ? performances.OrderBy(p => p.TotalSeconds).ToList() : performances.OrderByDescending(p => p.TotalInches).ToList();
+            if (selectedEvent.RelayEvent)
+            {
+                if (selectedEvent.RunningEvent)
+                {
+                    performances = performances.DistinctBy(p => p.TotalSeconds).ToList();
+
+                    foreach (var performance in performances)
+                    {
+                        var matching = await db.Performances
+                            .Include(p => p.Athlete)
+                            .Include(p => p.Meet)
+                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
+                            .Select(p => p.Athlete)
+                            .ToListAsync();
+
+                        var outdoorPerformances = performancesDictionary.Where(x => x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
+                        var indoorPerformances = performancesDictionary.Where(x => !x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
+
+                        if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                        else if (!indoorPerformances.Any() && !performance.Meet.Outdoor)
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                        else if (!performancesDictionary.Values.Any(x => x.All(matching.Contains)))
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                    }
+                }
+                else
+                {
+                    performances = performances.DistinctBy(p => p.TotalInches).ToList();
+
+                    foreach (var performance in performances)
+                    {
+                        var matching = await db.Performances
+                            .Include(p => p.Athlete)
+                            .Include(p => p.Meet)
+                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Feet == performance.Feet && p.Inches == performance.Inches && p.FractionalInches == performance.FractionalInches)
+                            .Select(p => p.Athlete)
+                            .ToListAsync();
+
+                        var outdoorPerformances = performancesDictionary.Where(x => x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
+                        var indoorPerformances = performancesDictionary.Where(x => !x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
+
+                        if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                        else if (!indoorPerformances.Any() && !performance.Meet.Outdoor)
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                        else if (!performancesDictionary.Values.Any(x => x.All(matching.Contains)))
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (var performance in performances)
+                {
+                    var outdoorPerformances = performancesDictionary.Where(x => x.Key.Meet.Outdoor && x.Value.All(new List<Athlete> { performance.Athlete }.Contains));
+                    var indoorPerformances = performancesDictionary.Where(x => !x.Key.Meet.Outdoor && x.Value.All(new List<Athlete> { performance.Athlete }.Contains));
+
+                    if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
+                    {
+                        performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
+                    }
+                    else if (!indoorPerformances.Any() && !performance.Meet.Outdoor)
+                    {
+                        performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
+                    }
+                    else if (!performancesDictionary.Values.Any(x => x.All((new List<Athlete> { performance.Athlete }).Contains)))
+                    {
+                        performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
+                    }
+                }
+            }
+
+            var viewModel = new EventLeaderboardViewModel(selectedEvent, performancesDictionary, true);
 
             return View("EventLeaderboard", viewModel);
         }

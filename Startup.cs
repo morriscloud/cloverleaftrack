@@ -22,6 +22,11 @@ namespace CloverleafTrack
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //services.AddMiniProfiler(options =>
+            //{
+            //    options.ColorScheme = StackExchange.Profiling.ColorScheme.Dark;
+            //}).AddEntityFramework();
+
             services.Configure<CurrentSeasonOptions>(Configuration.GetSection(CurrentSeasonOptions.Name));
 
             services.AddControllersWithViews()
@@ -35,6 +40,7 @@ namespace CloverleafTrack
         {
             if (env.IsDevelopment())
             {
+                //app.UseMiniProfiler();
                 app.UseDeveloperExceptionPage();
                 app.UseBrowserLink();
             }
