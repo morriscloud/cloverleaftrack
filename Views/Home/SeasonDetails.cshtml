@@ -1,0 +1,211 @@
+﻿@model SeasonDetailsViewModel
+
+@{
+    ViewData["Title"] = $"{Model.Season.Name} Season Details";
+}
+
+<div class="border-bottom pt-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-area="" asp-controller="Home" asp-action="Seasons">Seasons</a>
+            </li>
+            <li class="breadcrumb-item active">
+                @Model.Season.Name Details
+            </li>
+        </ol>
+    </nav>
+</div>
+
+<div class="border-bottom mb-3">
+    <h1 class="display-1">
+        @Model.Season.Name Season
+    </h1>
+    <p class="lead">
+        Season Details
+    </p>
+</div>
+
+<div class="container-fluid p-0">
+    <div class="row">
+        <div class="col-lg-6">
+            @if (Model.OutdoorBests.Any())
+            {
+                <div class="shadow rounded bg-light p-3 pb-0 mb-3">
+                    <h2 class="border-bottom pb-1">
+                        Outdoor Bests
+                    </h2>
+                    <table class="table table-hover table-striped table-sm">
+                        <caption>@Model.Season.Name Season Outdoor Bests</caption>
+                        <thead class="table-dark">
+                        <tr>
+                            <th colspan="2" class="text-center">Boys</th>
+                            <th class="text-center">Event</th>
+                            <th colspan="2" class="text-center">Girls</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var best in Model.OutdoorBests.OrderBy(p => p.TrackEvent.SortOrder))
+                        {
+                            <tr>
+                                <td class="align-middle col-3">
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach (var athlete in @best.BoysAthletes)
+                                        {
+                                            <li>
+                                                <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
+                                                    @athlete.Name
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </td>
+                                <td class="align-middle col-2">@best.BoysBest?.PerformanceFormatted</td>
+                                <td class="text-center align-middle col-2">
+                                    <strong>@best.TrackEvent.Name</strong>
+                                </td>
+                                <td class="align-middle col-3">
+                                    <ul class="list-unstyled mb-0">
+                                        @foreach (var athlete in @best.GirlsAthletes)
+                                        {
+                                            <li>
+                                                <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
+                                                    @athlete.Name
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </td>
+                                <td class="align-middle col-2">@best.GirlsBest?.PerformanceFormatted</td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            @if (Model.IndoorBests.Any())
+            {
+        <div class="shadow rounded bg-light p-3 pb-0 mb-3">
+            <h2 class="border-bottom pb-1">
+                Indoor Bests
+            </h2>
+            <table class="table table-hover table-striped table-sm">
+                <caption>@Model.Season.Name Season Outdoor Bests</caption>
+                <thead class="table-dark">
+                    <tr>
+                        <th colspan="2" class="text-center">Boys</th>
+                        <th class="text-center">Event</th>
+                        <th colspan="2" class="text-center">Girls</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var best in Model.IndoorBests.OrderBy(p => p.TrackEvent.SortOrder))
+                    {
+                        <tr>
+                            <td class="align-middle">
+                                <ul class="list-unstyled mb-0">
+                                    @foreach (var athlete in @best.BoysAthletes)
+                                    {
+                                        <li>
+                                            <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
+                                                @athlete.Name
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </td>
+                            <td class="align-middle">@best.BoysBest?.PerformanceFormatted</td>
+                            <td class="text-center align-middle">
+                                <strong>@best.TrackEvent.Name</strong>
+                            </td>
+                            <td class="align-middle">
+                                <ul class="list-unstyled mb-0">
+                                    @foreach (var athlete in @best.GirlsAthletes)
+                                    {
+                                        <li>
+                                            <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
+                                                @athlete.Name
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </td>
+                            <td class="align-middle">@best.GirlsBest?.PerformanceFormatted</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+            }
+        </div>
+        <div class="col-lg-6">
+            @if (Model.OutdoorMeets.Any())
+            {
+                <div class="shadow rounded bg-light p-3 pb-0 mb-3">
+                    <h2 class="border-bottom pb-1">
+                        Outdoor Meets
+                    </h2>
+                    <table class="table table-hover table-striped table-sm">
+                        <caption>@Model.Season.Name Season Outdoor Meets</caption>
+                        <thead class="table-dark">
+                        <tr>
+                            <th class="col-9">Meet</th>
+                            <th class="col-3">Date</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var meet in Model.OutdoorMeets.OrderByDescending(m => m.Date))
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@meet.UrlName">
+                                        @meet.Name @@ @meet.Location
+                                    </a>
+                                </td>
+                                <td class="align-middle">
+                                    @meet.Date.ToString("MM/dd/yyyy")
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            @if (Model.IndoorMeets.Any())
+            {
+                <div class="shadow rounded bg-light p-3 pb-0 mb-3">
+                    <h2 class="border-bottom pb-1">
+                        Indoor Meets
+                    </h2>
+                    <table class="table table-hover table-striped table-sm">
+                        <caption>@Model.Season.Name Season Indoor Meets</caption>
+                        <thead class="table-dark">
+                        <tr>
+                            <th class="col-9">Meet</th>
+                            <th class="col-3">Date</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        @foreach (var meet in Model.IndoorMeets.OrderByDescending(m => m.Date))
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@meet.UrlName">
+                                        @meet.Name @@ @meet.Location
+                                    </a>
+                                </td>
+                                <td class="align-middle">
+                                    @meet.Date.ToString("MM/dd/yyyy")
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

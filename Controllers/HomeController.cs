@@ -550,6 +550,319 @@ namespace CloverleafTrack.Controllers
             return View("MeetDetails", viewModel);
         }
 
+        [Route("seasons")]
+        public async Task<IActionResult> Seasons()
+        {
+            var seasons = await db.Seasons
+                .Include(s => s.Meets)
+                .Where(s => s.Meets.Any() && s.Meets.Any(m => m.Performances.Any()))
+                .ToListAsync();
+
+            var viewModel = new SeasonsViewModel(seasons);
+            return View(viewModel);
+        }
+
+        [Route("seasons/{seasonName}/details")]
+        public async Task<IActionResult> SeasonDetails(string seasonName)
+        {
+            var seasons = await db.Seasons.ToListAsync();
+            var selectedSeason = seasons.FirstOrDefault(s => s.Name == seasonName);
+            if (selectedSeason == null)
+            {
+                return NotFound();
+            }
+
+            var outdoorMeets = await db.Meets
+                .Include(m => m.Performances)
+                .Where(m => m.SeasonId == selectedSeason.Id && m.Outdoor && m.Performances.Any())
+                .ToListAsync();
+
+            var indoorMeets = await db.Meets
+                .Include(m => m.Performances)
+                .Where(m => m.SeasonId == selectedSeason.Id && !m.Outdoor && m.Performances.Any())
+                .ToListAsync();
+
+            var outdoorPerformances = await db.Performances
+                .Include(p => p.Meet)
+                .Include(p => p.Athlete)
+                .Include(p => p.TrackEvent)
+                .Where(m => m.Meet.SeasonId == selectedSeason.Id && m.Meet.Outdoor)
+                .ToListAsync();
+
+            var groupedOutdoor = outdoorPerformances.GroupBy(p => new { p.TrackEvent.Name, p.TrackEvent.RunningEvent });
+
+            var outdoorBests = new List<EventBest>();
+
+            foreach (var outdoor in groupedOutdoor)
+            {
+                var trackEvents = await db.TrackEvents
+                    .Where(t => t.Name == outdoor.Key.Name)
+                    .OrderBy(t => t.SortOrder)
+                    .ToListAsync();
+
+                var trackEvent = trackEvents.FirstOrDefault();
+
+                var boysBest = outdoor.Key.RunningEvent ? outdoor.Where(p => !p.Athlete.Gender).MinBy(p => p.TotalSeconds).FirstOrDefault() : outdoor.Where(p => !p.Athlete.Gender).MaxBy(p => p.TotalInches).FirstOrDefault();
+
+                var boysAthletes = new List<Athlete>();
+                if (boysBest != null)
+                {
+                    if (trackEvent.RelayEvent)
+                    {
+                        if (trackEvent.RunningEvent)
+                        {
+                            var matching = await db.Performances
+                                .Include(p => p.Athlete)
+                                .Include(p => p.Meet)
+                                .Include(p => p.TrackEvent)
+                                .Where(p => p.TrackEvent.Name == boysBest.TrackEvent.Name && p.MeetId == boysBest.MeetId && p.Minutes == boysBest.Minutes && p.Seconds == boysBest.Seconds && p.Milliseconds == boysBest.Milliseconds && !p.Athlete.Gender)
+                                .Select(p => p.Athlete)
+                                .ToListAsync();
+
+                            boysAthletes = matching;
+                        }
+                        else
+                        {
+                            var matching = await db.Performances
+                                .Include(p => p.Athlete)
+                                .Include(p => p.Meet)
+                                .Include(p => p.TrackEvent)
+                                .Where(p => p.TrackEvent.Name == boysBest.TrackEvent.Name && p.MeetId == boysBest.MeetId && p.Feet == boysBest.Feet && p.Inches == boysBest.Inches && p.FractionalInches == boysBest.FractionalInches && !p.Athlete.Gender)
+                                .Select(p => p.Athlete)
+                                .ToListAsync();
+
+                            boysAthletes = matching;
+                        }
+                    }
+                    else
+                    {
+                        boysAthletes.Add(boysBest.Athlete);
+                    }
+                }
+
+                var girlsBest = outdoor.Key.RunningEvent ? outdoor.Where(p => p.Athlete.Gender).MinBy(p => p.TotalSeconds).FirstOrDefault() : outdoor.Where(p => p.Athlete.Gender).MaxBy(p => p.TotalInches).FirstOrDefault();
+
+                var girlsAthletes = new List<Athlete>();
+                if (girlsBest != null)
+                {
+                    if (trackEvent.RelayEvent)
+                    {
+                        if (trackEvent.RunningEvent)
+                        {
+                            var matching = await db.Performances
+                                .Include(p => p.Athlete)
+                                .Include(p => p.Meet)
+                                .Include(p => p.TrackEvent)
+                                .Where(p => p.TrackEvent.Name == girlsBest.TrackEvent.Name && p.MeetId == girlsBest.MeetId && p.Minutes == girlsBest.Minutes && p.Seconds == girlsBest.Seconds && p.Milliseconds == girlsBest.Milliseconds && p.Athlete.Gender)
+                                .Select(p => p.Athlete)
+                                .ToListAsync();
+
+                            girlsAthletes = matching;
+                        }
+                        else
+                        {
+                            var matching = await db.Performances
+                                .Include(p => p.Athlete)
+                                .Include(p => p.Meet)
+                                .Include(p => p.TrackEvent)
+                                .Where(p => p.TrackEvent.Name == girlsBest.TrackEvent.Name && p.MeetId == girlsBest.MeetId && p.Feet == girlsBest.Feet && p.Inches == girlsBest.Inches && p.FractionalInches == girlsBest.FractionalInches && p.Athlete.Gender)
+                                .Select(p => p.Athlete)
+                                .ToListAsync();
+
+                            girlsAthletes = matching;
+                        }
+                    }
+                    else
+                    {
+                        girlsAthletes.Add(girlsBest.Athlete);
+                    }
+                }
+
+                var eventBest = new EventBest(trackEvent, boysBest, boysAthletes, girlsBest, girlsAthletes);
+                outdoorBests.Add(eventBest);
+            }
+
+            var indoorPerformances = await db.Performances
+                .Include(p => p.Meet)
+                .Include(p => p.Athlete)
+                .Include(p => p.TrackEvent)
+                .Where(m => m.Meet.SeasonId == selectedSeason.Id && !m.Meet.Outdoor)
+                .ToListAsync();
+
+            var groupedIndoor = indoorPerformances.GroupBy(p => new { p.TrackEvent.Name, p.TrackEvent.RunningEvent });
+
+            var indoorBests = new List<EventBest>();
+
+            foreach (var indoor in groupedIndoor)
+            {
+                var trackEvents = await db.TrackEvents
+                    .Where(t => t.Name == indoor.Key.Name)
+                    .OrderBy(t => t.SortOrder)
+                    .ToListAsync();
+
+                var trackEvent = trackEvents.FirstOrDefault();
+
+                var boysBest = indoor.Key.RunningEvent ? indoor.Where(p => !p.Athlete.Gender).MinBy(p => p.TotalSeconds).FirstOrDefault() : indoor.Where(p => !p.Athlete.Gender).MaxBy(p => p.TotalInches).FirstOrDefault();
+
+                var boysAthletes = new List<Athlete>();
+                if (boysBest != null)
+                {
+                    if (trackEvent.RelayEvent)
+                    {
+                        if (trackEvent.RunningEvent)
+                        {
+                            var matching = await db.Performances
+                                .Include(p => p.Athlete)
+                                .Include(p => p.Meet)
+                                .Include(p => p.TrackEvent)
+                                .Where(p => p.TrackEvent.Name == boysBest.TrackEvent.Name && p.MeetId == boysBest.MeetId && p.Minutes == boysBest.Minutes && p.Seconds == boysBest.Seconds && p.Milliseconds == boysBest.Milliseconds && !p.Athlete.Gender)
+                                .Select(p => p.Athlete)
+                                .ToListAsync();
+
+                            boysAthletes = matching;
+                        }
+                        else
+                        {
+                            var matching = await db.Performances
+                                .Include(p => p.Athlete)
+                                .Include(p => p.Meet)
+                                .Include(p => p.TrackEvent)
+                                .Where(p => p.TrackEvent.Name == boysBest.TrackEvent.Name && p.MeetId == boysBest.MeetId && p.Feet == boysBest.Feet && p.Inches == boysBest.Inches && p.FractionalInches == boysBest.FractionalInches && !p.Athlete.Gender)
+                                .Select(p => p.Athlete)
+                                .ToListAsync();
+
+                            boysAthletes = matching;
+                        }
+                    }
+                    else
+                    {
+                        boysAthletes.Add(boysBest.Athlete);
+                    }
+                }
+
+                var girlsBest = indoor.Key.RunningEvent ? indoor.Where(p => p.Athlete.Gender).MinBy(p => p.TotalSeconds).FirstOrDefault() : indoor.Where(p => p.Athlete.Gender).MaxBy(p => p.TotalInches).FirstOrDefault();
+
+                var girlsAthletes = new List<Athlete>();
+                if (girlsBest != null)
+                {
+                    if (trackEvent.RelayEvent)
+                    {
+                        if (trackEvent.RunningEvent)
+                        {
+                            var matching = await db.Performances
+                                .Include(p => p.Athlete)
+                                .Include(p => p.Meet)
+                                .Include(p => p.TrackEvent)
+                                .Where(p => p.TrackEvent.Name == girlsBest.TrackEvent.Name && p.MeetId == girlsBest.MeetId && p.Minutes == girlsBest.Minutes && p.Seconds == girlsBest.Seconds && p.Milliseconds == girlsBest.Milliseconds && p.Athlete.Gender)
+                                .Select(p => p.Athlete)
+                                .ToListAsync();
+
+                            girlsAthletes = matching;
+                        }
+                        else
+                        {
+                            var matching = await db.Performances
+                                .Include(p => p.Athlete)
+                                .Include(p => p.Meet)
+                                .Include(p => p.TrackEvent)
+                                .Where(p => p.TrackEvent.Name == girlsBest.TrackEvent.Name && p.MeetId == girlsBest.MeetId && p.Feet == girlsBest.Feet && p.Inches == girlsBest.Inches && p.FractionalInches == girlsBest.FractionalInches && p.Athlete.Gender)
+                                .Select(p => p.Athlete)
+                                .ToListAsync();
+
+                            girlsAthletes = matching;
+                        }
+                    }
+                    else
+                    {
+                        girlsAthletes.Add(girlsBest.Athlete);
+                    }
+                }
+
+                var eventBest = new EventBest(trackEvent, boysBest, boysAthletes, girlsBest, girlsAthletes);
+                indoorBests.Add(eventBest);
+            }
+
+            var viewModel = new SeasonDetailsViewModel(selectedSeason, outdoorMeets, indoorMeets, outdoorBests, indoorBests);
+            return View(viewModel);
+        }
+
+        [Route("seasons/{seasonName}/meets")]
+        public async Task<IActionResult> SeasonMeets(string seasonName)
+        {
+            var seasons = await db.Seasons.ToListAsync();
+            var selectedSeason = seasons.FirstOrDefault(s => s.Name == seasonName);
+            if (selectedSeason == null)
+            {
+                return NotFound();
+            }
+
+            var outdoorMeets = await db.Meets
+                .Include(m => m.Performances)
+                .Where(m => m.SeasonId == selectedSeason.Id && m.Outdoor && m.Performances.Any())
+                .OrderByDescending(m => m.Date)
+                .ToListAsync();
+
+            var indoorMeets = await db.Meets
+                .Include(m => m.Performances)
+                .Where(m => m.SeasonId == selectedSeason.Id && m.Outdoor && m.Performances.Any())
+                .OrderByDescending(m => m.Date)
+                .ToListAsync();
+
+            return null;
+        }
+
+        [Route("seasons/{seasonName}/leaderboard/outdoor")]
+        public async Task<IActionResult> SeasonLeaderboardOutdoor(string seasonName)
+        {
+            var seasons = await db.Seasons.ToListAsync();
+            var selectedSeason = seasons.FirstOrDefault(s => s.Name == seasonName);
+            if (selectedSeason == null)
+            {
+                return NotFound();
+            }
+
+            return null;
+        }
+
+        [Route("seasons/{seasonName}/leaderboard/outdoor/prs")]
+        public async Task<IActionResult> SeasonPrLeaderboardOutdoor(string seasonName)
+        {
+            var seasons = await db.Seasons.ToListAsync();
+            var selectedSeason = seasons.FirstOrDefault(s => s.Name == seasonName);
+            if (selectedSeason == null)
+            {
+                return NotFound();
+            }
+
+            return null;
+        }
+
+        [Route("seasons/{seasonName}/leaderboard/indoor")]
+        public async Task<IActionResult> SeasonLeaderboardIndoor(string seasonName)
+        {
+            var seasons = await db.Seasons.ToListAsync();
+            var selectedSeason = seasons.FirstOrDefault(s => s.Name == seasonName);
+            if (selectedSeason == null)
+            {
+                return NotFound();
+            }
+
+            return null;
+        }
+
+        [Route("seasons/{seasonName}/leaderboard/indoor/prs")]
+        public async Task<IActionResult> SeasonPrLeaderboardIndoor(string seasonName)
+        {
+            var seasons = await db.Seasons.ToListAsync();
+            var selectedSeason = seasons.FirstOrDefault(s => s.Name == seasonName);
+            if (selectedSeason == null)
+            {
+                return NotFound();
+            }
+
+            return null;
+        }
+
         [Route("error")]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

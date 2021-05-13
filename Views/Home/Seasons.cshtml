@@ -1,0 +1,63 @@
+﻿@model SeasonsViewModel
+
+@{
+    ViewData["Title"] = "Seasons";
+}
+
+<div class="border-bottom pt-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+            </li>
+            <li class="breadcrumb-item active">
+                Seasons
+            </li>
+        </ol>
+    </nav>
+</div>
+
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="display-1">
+        Seasons
+    </h1>
+</div>
+
+<table class="table table-hover table-striped table-sm">
+    <caption>Seasons</caption>
+    <thead class="table-dark">
+    <tr>
+        <th class="col-3">Season</th>
+        <th class="col-3">@*Meets*@</th>
+        <th class="col-3">@*Outdoor Leaderboard*@</th>
+        <th class="col-3">@*Indoor Leaderboard*@</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var season in Model.Seasons.OrderByDescending(s => s.Name))
+    {
+        <tr>
+            <td>
+                <a asp-area="" asp-controller="Home" asp-action="SeasonDetails" asp-route-seasonName="@season.Name">
+                    @season.Name
+                </a>
+            </td>
+            <td>
+                @*<a asp-area="" asp-controller="Home" asp-action="SeasonMeets" asp-route-seasonName="@season.Name">
+                    Meets
+                </a>*@
+            </td>
+            <td>
+                @*<a asp-area="" asp-controller="Home" asp-action="SeasonLeaderboardOutdoor" asp-route-seasonName="@season.Name">
+                    Outdoor Leaderboard
+                </a>*@
+            </td>
+            <td>
+                @*<a asp-area="" asp-controller="Home" asp-action="SeasonLeaderboardIndoor" asp-route-seasonName="@season.Name">
+                    Indoor Leaderboard
+                </a>*@
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
