@@ -64,7 +64,7 @@
     }
 </p>
 
-@if (Model.Performances.Where(p => p.Key.Meet.Outdoor).Any())
+@if (Model.Performances.Any(p => p.Key.Meet.Outdoor))
 {
 <h2 class="border-bottom pb-1">
     @if (Model.Prs)
@@ -116,7 +116,17 @@
                                     }
                                 </ul>
                             </th>
-                            <td class="text-nowrap align-middle">@performance.Key.PerformanceFormatted</td>
+                            <td class="text-nowrap align-middle">
+                                @performance.Key.PerformanceFormatted
+                                @if (performance.Key.IsPersonalBest)
+                                {
+                                    <span class="badge bg-secondary">PR</span>
+                                }
+                                @if (performance.Key.IsSeasonBest)
+                                {
+                                    <span class="badge bg-secondary">SB</span>
+                                }
+                            </td>
                             <td class="align-middle">@performance.Key.Meet.Date.ToString("MM/dd/yyyy")</td>
                             <td class="align-middle">
                                 <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@performance.Key.Meet.UrlName">
@@ -133,7 +143,7 @@
     </div>
 }
 
-@if (Model.Performances.Where(p => !p.Key.Meet.Outdoor).Any())
+@if (Model.Performances.Any(p => !p.Key.Meet.Outdoor))
 {
 <h2 class="border-bottom pb-1">
     @if (Model.Prs)
@@ -185,7 +195,17 @@
                                     }
                                 </ul>
                             </th>
-                            <td class="text-nowrap align-middle">@performance.Key.PerformanceFormatted</td>
+                            <td class="text-nowrap align-middle">
+                                @performance.Key.PerformanceFormatted
+                                @if (performance.Key.IsPersonalBest)
+                                {
+                                    <span class="badge bg-secondary">PR</span>
+                                }
+                                @if (performance.Key.IsSeasonBest)
+                                {
+                                    <span class="badge bg-secondary">SB</span>
+                                }
+                            </td>
                             <td class="align-middle">@performance.Key.Meet.Date.ToString("MM/dd/yyyy")</td>
                             <td class="align-middle">
                                 <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@performance.Key.Meet.UrlName">

@@ -147,6 +147,9 @@ namespace CloverleafTrack.Controllers
                             .Select(p => p.Athlete)
                             .ToListAsync();
 
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
                         performancesDictionary.Add(performance, matching);
                     }
                 }
@@ -163,6 +166,9 @@ namespace CloverleafTrack.Controllers
                             .Select(p => p.Athlete)
                             .ToListAsync();
 
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
                         performancesDictionary.Add(performance, matching);
                     }
                 }
@@ -171,6 +177,9 @@ namespace CloverleafTrack.Controllers
             {
                 foreach (var performance in performances)
                 {
+                    await SetPersonalBest(performance);
+                    await SetSeasonBest(performance);
+
                     performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
                 }
             }
@@ -216,6 +225,9 @@ namespace CloverleafTrack.Controllers
                         var outdoorPerformances = performancesDictionary.Where(x => x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
                         var indoorPerformances = performancesDictionary.Where(x => !x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
 
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
                         if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
                         {
                             performancesDictionary.Add(performance, matching);
@@ -246,6 +258,9 @@ namespace CloverleafTrack.Controllers
                         var outdoorPerformances = performancesDictionary.Where(x => x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
                         var indoorPerformances = performancesDictionary.Where(x => !x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
 
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
                         if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
                         {
                             performancesDictionary.Add(performance, matching);
@@ -267,6 +282,9 @@ namespace CloverleafTrack.Controllers
                 {
                     var outdoorPerformances = performancesDictionary.Where(x => x.Key.Meet.Outdoor && x.Value.All(new List<Athlete> { performance.Athlete }.Contains));
                     var indoorPerformances = performancesDictionary.Where(x => !x.Key.Meet.Outdoor && x.Value.All(new List<Athlete> { performance.Athlete }.Contains));
+
+                    await SetPersonalBest(performance);
+                    await SetSeasonBest(performance);
 
                     if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
                     {
@@ -334,7 +352,7 @@ namespace CloverleafTrack.Controllers
 
             var lifetimePrs = GetLifetimePrs(athlete);
             var seasonPrs = GetSeasonPrs(athlete);
-            var eventPerformances = GetEventPerformances(athlete);
+            var eventPerformances = await GetEventPerformances(athlete);
 
             return View(new AthleteViewModel(athlete, lifetimePrs, seasonPrs, eventPerformances));
         }
@@ -401,7 +419,7 @@ namespace CloverleafTrack.Controllers
             return seasonPrs;
         }
 
-        private List<EventPerformance> GetEventPerformances(Athlete athlete)
+        private async Task<List<EventPerformance>> GetEventPerformances(Athlete athlete)
         {
             var eventPerformances = new List<EventPerformance>();
 
@@ -418,11 +436,71 @@ namespace CloverleafTrack.Controllers
                     performances = eventGroup.OrderByDescending(p => p.TotalInches);
                 }
 
+                foreach (var performance in performances)
+                {
+                    await SetPersonalBest(performance);
+                    await SetSeasonBest(performance);
+                }
+
                 var eventPerformance = new EventPerformance(eventGroup.Key, performances);
                 eventPerformances.Add(eventPerformance);
             }
 
             return eventPerformances;
+        }
+
+        private async Task SetPersonalBest(Performance performance)
+        {
+            var athletePerformances = await db.Performances
+                .Include(p => p.TrackEvent)
+                .Include(p => p.Athlete)
+                .Include(p => p.Meet)
+                .Where(p => p.AthleteId == performance.AthleteId && p.TrackEventId == performance.TrackEventId && p.Meet.Outdoor == performance.Meet.Outdoor)
+                .ToListAsync();
+
+            if (performance.TrackEvent.RunningEvent)
+            {
+                var best = athletePerformances.MinBy(p => p.TotalSeconds).FirstOrDefault();
+                if (best.TotalSeconds == performance.TotalSeconds)
+                {
+                    performance.IsPersonalBest = true;
+                }
+            }
+            else
+            {
+                var best = athletePerformances.MaxBy(p => p.TotalInches).FirstOrDefault();
+                if (best.TotalInches == performance.TotalInches)
+                {
+                    performance.IsPersonalBest = true;
+                }
+            }
+        }
+
+        private async Task SetSeasonBest(Performance performance)
+        {
+            var athletePerformances = await db.Performances
+                .Include(p => p.TrackEvent)
+                .Include(p => p.Athlete)
+                .Include(p => p.Meet)
+                .Where(p => p.AthleteId == performance.AthleteId && p.TrackEventId == performance.TrackEventId && p.Meet.Outdoor == performance.Meet.Outdoor && p.Meet.SeasonId == performance.Meet.SeasonId)
+                .ToListAsync();
+
+            if (performance.TrackEvent.RunningEvent)
+            {
+                var best = athletePerformances.MinBy(p => p.TotalSeconds).FirstOrDefault();
+                if (best.TotalSeconds == performance.TotalSeconds)
+                {
+                    performance.IsSeasonBest = true;
+                }
+            }
+            else
+            {
+                var best = athletePerformances.MaxBy(p => p.TotalInches).FirstOrDefault();
+                if (best.TotalInches == performance.TotalInches)
+                {
+                    performance.IsSeasonBest = true;
+                }
+            }
         }
 
         [Route("meets")]
@@ -496,6 +574,9 @@ namespace CloverleafTrack.Controllers
                             .Select(p => p.Athlete)
                             .ToListAsync();
 
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
                         performancesDictionary.Add(performance, matching);
                     }
                 }
@@ -503,6 +584,9 @@ namespace CloverleafTrack.Controllers
                 {
                     foreach (var performance in res.Value)
                     {
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
                         performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
                     }
                 }
@@ -532,6 +616,9 @@ namespace CloverleafTrack.Controllers
                             .Select(p => p.Athlete)
                             .ToListAsync();
 
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
                         performancesDictionary.Add(performance, matching);
                     }
                 }
@@ -539,6 +626,9 @@ namespace CloverleafTrack.Controllers
                 {
                     foreach (var performance in res.Value)
                     {
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
                         performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
                     }
                 }
@@ -607,6 +697,9 @@ namespace CloverleafTrack.Controllers
                 var boysAthletes = new List<Athlete>();
                 if (boysBest != null)
                 {
+                    await SetPersonalBest(boysBest);
+                    await SetSeasonBest(boysBest);
+
                     if (trackEvent.RelayEvent)
                     {
                         if (trackEvent.RunningEvent)
@@ -645,6 +738,9 @@ namespace CloverleafTrack.Controllers
                 var girlsAthletes = new List<Athlete>();
                 if (girlsBest != null)
                 {
+                    await SetPersonalBest(girlsBest);
+                    await SetSeasonBest(girlsBest);
+
                     if (trackEvent.RelayEvent)
                     {
                         if (trackEvent.RunningEvent)
@@ -707,6 +803,9 @@ namespace CloverleafTrack.Controllers
                 var boysAthletes = new List<Athlete>();
                 if (boysBest != null)
                 {
+                    await SetPersonalBest(boysBest);
+                    await SetSeasonBest(boysBest);
+
                     if (trackEvent.RelayEvent)
                     {
                         if (trackEvent.RunningEvent)
@@ -745,6 +844,9 @@ namespace CloverleafTrack.Controllers
                 var girlsAthletes = new List<Athlete>();
                 if (girlsBest != null)
                 {
+                    await SetPersonalBest(girlsBest);
+                    await SetSeasonBest(girlsBest);
+
                     if (trackEvent.RelayEvent)
                     {
                         if (trackEvent.RunningEvent)

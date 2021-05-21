@@ -80,6 +80,10 @@ namespace CloverleafTrack.Models
 
             }
         }
+        [NotMapped]
+        public bool IsPersonalBest { get; set; }
+        [NotMapped]
+        public bool IsSeasonBest { get; set; }
         public TrackEvent TrackEvent { get; set; }
         public Athlete Athlete { get; set; }
         public Meet Meet { get; set; }

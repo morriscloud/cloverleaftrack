@@ -63,7 +63,13 @@
                                         }
                                     </ul>
                                 </td>
-                                <td class="align-middle col-2">@best.BoysBest?.PerformanceFormatted</td>
+                                <td class="align-middle col-2">
+                                    @best.BoysBest?.PerformanceFormatted
+                                    @if (best.BoysBest?.IsPersonalBest != null && (bool) best.BoysBest?.IsPersonalBest)
+                                    {
+                                        <span class="badge bg-secondary">PR</span>
+                                    }
+                                </td>
                                 <td class="text-center align-middle col-2">
                                     <strong>@best.TrackEvent.Name</strong>
                                 </td>
@@ -79,7 +85,13 @@
                                         }
                                     </ul>
                                 </td>
-                                <td class="align-middle col-2">@best.GirlsBest?.PerformanceFormatted</td>
+                                <td class="align-middle col-2">
+                                    @best.GirlsBest?.PerformanceFormatted
+                                    @if (best.GirlsBest?.IsPersonalBest != null && (bool)best.GirlsBest?.IsPersonalBest)
+                                    {
+                                        <span class="badge bg-secondary">PR</span>
+                                    }
+                                </td>
                             </tr>
                         }
                         </tbody>
@@ -93,7 +105,7 @@
                 Indoor Bests
             </h2>
             <table class="table table-hover table-striped table-sm">
-                <caption>@Model.Season.Name Season Outdoor Bests</caption>
+                <caption>@Model.Season.Name Season Indoor Bests</caption>
                 <thead class="table-dark">
                     <tr>
                         <th colspan="2" class="text-center">Boys</th>
@@ -117,7 +129,13 @@
                                     }
                                 </ul>
                             </td>
-                            <td class="align-middle">@best.BoysBest?.PerformanceFormatted</td>
+                            <td class="align-middle">
+                                @best.BoysBest?.PerformanceFormatted
+                                @if (best.BoysBest?.IsPersonalBest != null && (bool) best.BoysBest?.IsPersonalBest)
+                                {
+                                    <span class="badge bg-secondary">PR</span>
+                                }
+                            </td>
                             <td class="text-center align-middle">
                                 <strong>@best.TrackEvent.Name</strong>
                             </td>
@@ -133,7 +151,13 @@
                                     }
                                 </ul>
                             </td>
-                            <td class="align-middle">@best.GirlsBest?.PerformanceFormatted</td>
+                            <td class="align-middle">
+                                @best.GirlsBest?.PerformanceFormatted
+                                @if (best.GirlsBest?.IsPersonalBest != null && (bool) best.GirlsBest?.IsPersonalBest)
+                                {
+                                    <span class="badge bg-secondary">PR</span>
+                                }
+                            </td>
                         </tr>
                     }
                 </tbody>

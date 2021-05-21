@@ -77,7 +77,17 @@
                                         }
                                     </ul>
                                 </th>
-                                <td class="text-nowrap align-middle">@performance.Key.PerformanceFormatted</td>
+                                <td class="text-nowrap align-middle">
+                                    @performance.Key.PerformanceFormatted
+                                    @if (performance.Key.IsPersonalBest)
+                                    {
+                                        <span class="badge bg-secondary">PR</span>
+                                    }
+                                    @if (performance.Key.IsSeasonBest)
+                                    {
+                                        <span class="badge bg-secondary">SB</span>
+                                    }
+                                </td>
                             </tr>
                         }
                         </tbody>
@@ -119,7 +129,17 @@
                                             }
                                         </ul>
                                     </th>
-                                    <td class="text-nowrap align-middle">@performance.Key.PerformanceFormatted</td>
+                                    <td class="text-nowrap align-middle">
+                                        @performance.Key.PerformanceFormatted
+                                        @if (performance.Key.IsPersonalBest)
+                                        {
+                                            <span class="badge bg-secondary">PR</span>
+                                        }
+                                        @if (performance.Key.IsSeasonBest)
+                                        {
+                                            <span class="badge bg-secondary">SB</span>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         </tbody>
