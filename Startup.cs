@@ -1,4 +1,5 @@
 using CloverleafTrack.Data;
+using CloverleafTrack.Managers;
 using CloverleafTrack.Options;
 
 using Microsoft.AspNetCore.Builder;
@@ -32,7 +33,14 @@ namespace CloverleafTrack
             services.AddControllersWithViews()
                 .AddRazorRuntimeCompilation();
 
-            services.AddDbContext<CloverleafTrackDataContext>(options => options.UseSqlServer(Configuration.GetConnectionString("CloverleafTrackDataContext")));
+            services.AddDbContext<CloverleafTrackDataContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("CloverleafTrackDataContext")));
+
+            services.AddTransient<IAthleteManager, AthleteManager>();
+            services.AddTransient<IMeetManager, MeetManager>();
+            services.AddTransient<IPerformanceManager, PerformanceManager>();
+            services.AddTransient<ISeasonManager, SeasonManager>();
+            services.AddTransient<ITrackEventManager, TrackEventManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

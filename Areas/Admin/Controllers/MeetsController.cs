@@ -1,13 +1,13 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-
-using CloverleafTrack.Data;
+﻿using CloverleafTrack.Data;
 using CloverleafTrack.Models;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace CloverleafTrack.Areas.Admin.Controllers
 {
@@ -74,7 +74,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Date,Name,SeasonId,Outdoor,Location,AllResultsIn")] Meet meet)
+        public async Task<IActionResult> Create([Bind("Date,Name,SeasonId,Outdoor,Location,AllResultsIn,HandTimed")] Meet meet)
         {
             if (ModelState.IsValid)
             {
@@ -109,7 +109,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Date,Name,SeasonId,Outdoor,Location,AllResultsIn")] Meet meet)
+        public async Task<IActionResult> Edit(Guid id, [Bind("Id,Date,Name,SeasonId,Outdoor,Location,AllResultsIn,HandTimed")] Meet meet)
         {
             if (id != meet.Id)
             {

@@ -41,17 +41,17 @@
                     </tr>
                     </thead>
                     <tbody>
-                    @foreach (var ev in Model.BoysEvents)
+                    @foreach (var leaderboardPerformance in Model.BoysLeaderboardPerformances)
                     {
                         <tr>
                             <th class="col-4 align-middle">
-                                <a asp-area="" asp-controller="Home" asp-action="EventLeaderboard" asp-route-eventName="@ev.Key.UrlName">
-                                    @ev.Key.Name
+                                <a asp-area="" asp-controller="Home" asp-action="EventLeaderboard" asp-route-eventName="@leaderboardPerformance.TrackEvent.UrlName">
+                                    @leaderboardPerformance.TrackEvent.Name
                                 </a>
                             </th>
                             <td class="col-3 align-middle">
                                 <ul class="list-unstyled mb-0">
-                                    @foreach (var athlete in ev.Value.Value)
+                                    @foreach (var athlete in leaderboardPerformance.Athletes)
                                     {
                                         <li>
                                             <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
@@ -61,8 +61,8 @@
                                     }
                                 </ul>
                             </td>
-                            <td class="col-3 align-middle">@ev.Value.Key.PerformanceFormatted</td>
-                            <td class="align-middle">@ev.Value.Key.Meet.Date.ToString("MM/dd/yyyy")</td>
+                            <td class="col-3 align-middle">@leaderboardPerformance.Performance.PerformanceFormatted</td>
+                            <td class="align-middle">@leaderboardPerformance.Performance.Meet.Date.ToString("MM/dd/yyyy")</td>
                         </tr>
                     }
                     </tbody>
@@ -85,30 +85,30 @@
                     </tr>
                     </thead>
                     <tbody>
-                        @foreach (var ev in Model.GirlsEvents)
-                        {
-                            <tr>
-                                <th class="col-4 align-middle">
-                                    <a asp-area="" asp-controller="Home" asp-action="EventLeaderboard" asp-route-eventName="@ev.Key.UrlName">
-                                        @ev.Key.Name
-                                    </a>
-                                </th>
-                                <td class="col-3 align-middle">
-                                    <ul class="list-unstyled mb-0">
-                                        @foreach (var athlete in ev.Value.Value)
-                                        {
-                                            <li>
-                                                <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
-                                                    @athlete.Name
-                                                </a>
-                                            </li>
-                                        }
-                                    </ul>
-                                </td>
-                                <td class="col-3 align-middle">@ev.Value.Key.PerformanceFormatted</td>
-                                <td class="align-middle">@ev.Value.Key.Meet.Date.ToString("MM/dd/yyyy")</td>
-                            </tr>
-                        }
+                    @foreach (var leaderboardPerformance in Model.GirlsLeaderboardPerformances)
+                    {
+                        <tr>
+                            <th class="col-4 align-middle">
+                                <a asp-area="" asp-controller="Home" asp-action="EventLeaderboard" asp-route-eventName="@leaderboardPerformance.TrackEvent.UrlName">
+                                    @leaderboardPerformance.TrackEvent.Name
+                                </a>
+                            </th>
+                            <td class="col-3 align-middle">
+                                <ul class="list-unstyled mb-0">
+                                    @foreach (var athlete in leaderboardPerformance.Athletes)
+                                    {
+                                        <li>
+                                            <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
+                                                @athlete.Name
+                                            </a>
+                                        </li>
+                                    }
+                                </ul>
+                            </td>
+                            <td class="col-3 align-middle">@leaderboardPerformance.Performance.PerformanceFormatted</td>
+                            <td class="align-middle">@leaderboardPerformance.Performance.Meet.Date.ToString("MM/dd/yyyy")</td>
+                        </tr>
+                    }
                     </tbody>
                 </table>
             </div>

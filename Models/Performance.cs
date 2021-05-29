@@ -33,6 +33,10 @@ namespace CloverleafTrack.Models
                     var seconds = (float)Seconds.GetValueOrDefault(0);
                     var milliseconds = (float)Milliseconds.GetValueOrDefault(0);
 
+                    if (Meet.HandTimed)
+                    {
+                        return $"{minutes:00}:{seconds:00}.{milliseconds.ToString()[0]}h";
+                    }
                     return $"{minutes:00}:{seconds:00}.{milliseconds:00}";
                 }
 
@@ -40,7 +44,7 @@ namespace CloverleafTrack.Models
                 var inches = (float)Inches.GetValueOrDefault(0);
                 var fractionalInches = (float)FractionalInches.GetValueOrDefault(0);
 
-                return TrackEvent.Name.Contains("Discus") ? $"{feet:000}-{inches:00}" : $"{feet:00}-{inches:00}.{fractionalInches:00}";
+                return (TrackEvent.Name.Contains("Discus") || TrackEvent.Name.Contains("Hammer")) ? $"{feet:000}-{inches:00}" : $"{feet:00}-{inches:00}.{fractionalInches:00}";
 
             }
         }
@@ -80,6 +84,8 @@ namespace CloverleafTrack.Models
 
             }
         }
+        [NotMapped]
+        public bool IsSchoolRecord { get; set; }
         [NotMapped]
         public bool IsPersonalBest { get; set; }
         [NotMapped]

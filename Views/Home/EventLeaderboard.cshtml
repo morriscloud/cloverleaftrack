@@ -64,7 +64,7 @@
     }
 </p>
 
-@if (Model.Performances.Any(p => p.Key.Meet.Outdoor))
+@if (Model.Performances.Any(p => p.Performance.Meet.Outdoor))
 {
 <h2 class="border-bottom pb-1">
     @if (Model.Prs)
@@ -100,13 +100,13 @@
             <tbody>
                 @{
                     int count = 1;
-                    foreach (var performance in Model.Performances.Where(p => p.Key.Meet.Outdoor))
+                    foreach (var performance in Model.Performances.Where(p => p.Performance.Meet.Outdoor))
                     {
                         <tr>
                             <th class="text-center align-middle">@count</th>
                             <th class="align-middle">
                                 <ul class="list-unstyled mb-0">
-                                    @foreach (var athlete in performance.Value)
+                                    @foreach (var athlete in performance.Athletes)
                                     {
                                         <li>
                                             <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
@@ -117,20 +117,20 @@
                                 </ul>
                             </th>
                             <td class="text-nowrap align-middle">
-                                @performance.Key.PerformanceFormatted
-                                @if (performance.Key.IsPersonalBest)
+                                @performance.Performance.PerformanceFormatted
+                                @if (performance.Performance.IsPersonalBest)
                                 {
-                                    <span class="badge bg-secondary">PR</span>
+                                    <span class="badge bg-warning">⭐</span>
                                 }
-                                @if (performance.Key.IsSeasonBest)
+                                else if (performance.Performance.IsSeasonBest)
                                 {
-                                    <span class="badge bg-secondary">SB</span>
+                                    <span class="badge bg-info">📅</span>
                                 }
                             </td>
-                            <td class="align-middle">@performance.Key.Meet.Date.ToString("MM/dd/yyyy")</td>
+                            <td class="align-middle">@performance.Performance.Meet.Date.ToString("MM/dd/yyyy")</td>
                             <td class="align-middle">
-                                <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@performance.Key.Meet.UrlName">
-                                    @performance.Key.Meet.Name @@ @performance.Key.Meet.Location
+                                <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@performance.Performance.Meet.UrlName">
+                                    @performance.Performance.Meet.Name @@ @performance.Performance.Meet.Location
                                 </a>
                             </td>
                         </tr>
@@ -143,7 +143,7 @@
     </div>
 }
 
-@if (Model.Performances.Any(p => !p.Key.Meet.Outdoor))
+@if (Model.Performances.Any(p => !p.Performance.Meet.Outdoor))
 {
 <h2 class="border-bottom pb-1">
     @if (Model.Prs)
@@ -179,13 +179,13 @@
             <tbody>
                 @{
                     int count = 1;
-                    foreach (var performance in Model.Performances.Where(p => !p.Key.Meet.Outdoor))
+                    foreach (var performance in Model.Performances.Where(p => !p.Performance.Meet.Outdoor))
                     {
                         <tr>
                             <th class="text-center align-middle">@count</th>
                             <th class="align-middle">
                                 <ul class="list-unstyled mb-0">
-                                    @foreach (var athlete in performance.Value)
+                                    @foreach (var athlete in performance.Athletes)
                                     {
                                         <li>
                                             <a asp-area="" asp-controller="Home" asp-action="Athlete" asp-route-name="@athlete.UrlName">
@@ -196,20 +196,20 @@
                                 </ul>
                             </th>
                             <td class="text-nowrap align-middle">
-                                @performance.Key.PerformanceFormatted
-                                @if (performance.Key.IsPersonalBest)
+                                @performance.Performance.PerformanceFormatted
+                                @if (performance.Performance.IsPersonalBest)
                                 {
                                     <span class="badge bg-secondary">PR</span>
                                 }
-                                @if (performance.Key.IsSeasonBest)
+                                @if (performance.Performance.IsSeasonBest)
                                 {
                                     <span class="badge bg-secondary">SB</span>
                                 }
                             </td>
-                            <td class="align-middle">@performance.Key.Meet.Date.ToString("MM/dd/yyyy")</td>
+                            <td class="align-middle">@performance.Performance.Meet.Date.ToString("MM/dd/yyyy")</td>
                             <td class="align-middle">
-                                <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@performance.Key.Meet.UrlName">
-                                    @performance.Key.Meet.Name @@ @performance.Key.Meet.Location
+                                <a asp-area="" asp-controller="Home" asp-action="MeetResults" asp-route-meetName="@performance.Performance.Meet.UrlName">
+                                    @performance.Performance.Meet.Name @@ @performance.Performance.Meet.Location
                                 </a>
                             </td>
                         </tr>

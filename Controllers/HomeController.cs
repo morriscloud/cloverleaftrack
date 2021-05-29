@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using CloverleafTrack.Data;
+﻿using CloverleafTrack.Data;
+using CloverleafTrack.Managers;
 using CloverleafTrack.Models;
 using CloverleafTrack.Options;
 using CloverleafTrack.ViewModels;
@@ -16,6 +10,13 @@ using Microsoft.Extensions.Options;
 
 using MoreLinq;
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
 namespace CloverleafTrack.Controllers
 {
     [Route("")]
@@ -23,285 +24,101 @@ namespace CloverleafTrack.Controllers
     {
         private readonly CloverleafTrackDataContext db;
         private readonly CurrentSeasonOptions currentSeason;
+        private readonly IAthleteManager athleteManager;
+        private readonly IMeetManager meetManager;
+        private readonly IPerformanceManager performanceManager;
+        private readonly ISeasonManager seasonManager;
+        private readonly ITrackEventManager trackEventManager;
 
-        public HomeController(CloverleafTrackDataContext db, IOptions<CurrentSeasonOptions> currentSeason)
+        public HomeController(CloverleafTrackDataContext db, IAthleteManager athleteManager, IMeetManager meetManager, IPerformanceManager performanceManager, ISeasonManager seasonManager, ITrackEventManager trackEventManager, IOptions<CurrentSeasonOptions> currentSeason)
         {
             this.db = db;
+            this.athleteManager = athleteManager;
+            this.meetManager = meetManager;
+            this.performanceManager = performanceManager;
+            this.seasonManager = seasonManager;
+            this.trackEventManager = trackEventManager;
             this.currentSeason = currentSeason.Value;
         }
 
-        [Route("")]
-        public async Task<IActionResult> Index(CancellationToken cancellationToken)
+        [Route("reload")]
+        public async Task<IActionResult> Reload(CancellationToken cancellationToken)
         {
-            var performanceCount = await db.Performances.CountAsync(cancellationToken);
-            var meetCount = await db.Meets.CountAsync(cancellationToken);
-            var seasonCount = await db.Seasons.CountAsync(cancellationToken);
-            var athleteCount = await db.Athletes.CountAsync(cancellationToken);
+            await athleteManager.Reload(cancellationToken);
+            await meetManager.Reload(cancellationToken);
+            await performanceManager.Reload(cancellationToken);
+            await seasonManager.Reload(cancellationToken);
+            await trackEventManager.Reload(cancellationToken);
+
+            foreach (var athlete in athleteManager.Athletes)
+            {
+                athleteManager.GetAthletePrs(athlete);
+                athleteManager.GetAthleteSeasonBests(athlete);
+            }
+
+            performanceManager.GetLeaderboardPerformances(trackEventManager.TrackEvents);
+
+            foreach (var trackEvent in trackEventManager.TrackEvents)
+            {
+                performanceManager.GetEventLeaderboardPerformances(trackEvent);
+                performanceManager.GetEventLeaderboardPrPerformances(trackEvent);
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [Route("")]
+        public IActionResult Index()
+        {
+            var performanceCount = performanceManager.Count;
+            var meetCount = meetManager.Count;
+            var seasonCount = seasonManager.Count;
+            var athleteCount = athleteManager.Count;
 
             var viewModel = new HomeViewModel(performanceCount, meetCount, seasonCount, athleteCount, DateTime.Now);
             return View(viewModel);
         }
 
         [Route("leaderboard")]
-        public async Task<IActionResult> Leaderboard(CancellationToken cancellationToken)
+        public IActionResult Leaderboard()
         {
-            var boysEvents = await db.TrackEvents.Where(t => !t.Gender && t.Performances.Count > 0).OrderBy(t => t.SortOrder).ToListAsync(cancellationToken);
-            var girlsEvents = await db.TrackEvents.Where(t => t.Gender && t.Performances.Count > 0).OrderBy(t => t.SortOrder).ToListAsync(cancellationToken);
+            var boysLeaderboardPerformances = performanceManager.GetLeaderboardPerformances(trackEventManager.BoysLeaderboardEvents);
+            var girlsLeaderboardPerformances = performanceManager.GetLeaderboardPerformances(trackEventManager.GirlsLeaderboardEvents);
 
-            var boysEventsWithTopPerformance = new Dictionary<TrackEvent, KeyValuePair<Performance, List<Athlete>>>();
-            var girlsEventsWithTopPerformance = new Dictionary<TrackEvent, KeyValuePair<Performance, List<Athlete>>>();
-
-            KeyValuePair<Performance, List<Athlete>> performanceDictionary;
-            foreach (var ev in boysEvents)
-            {
-                var performances = await db.Performances
-                    .Include(p => p.Athlete)
-                    .Include(p => p.Meet)
-                    .Where(p => p.TrackEventId == ev.Id)
-                    .ToListAsync(cancellationToken);
-
-                var performance = ev.RunningEvent ? performances.MinBy(p => p.TotalSeconds).FirstOrDefault() : performances.MaxBy(p => p.TotalInches).FirstOrDefault();
-
-                if (ev.RelayEvent)
-                {
-                    var matching = await db.Performances
-                        .Include(p => p.Athlete)
-                        .Include(p => p.Meet)
-                        .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
-                        .Select(p => p.Athlete)
-                        .ToListAsync(cancellationToken);
-
-                    performanceDictionary = new KeyValuePair<Performance, List<Athlete>>(performance, matching);
-                }
-                else
-                {
-                    performanceDictionary = new KeyValuePair<Performance, List<Athlete>>(performance, new List<Athlete> { performance.Athlete });
-                }
-
-                boysEventsWithTopPerformance.Add(ev, performanceDictionary);
-            }
-
-            foreach (var ev in girlsEvents)
-            {
-                var performances = await db.Performances
-                    .Include(p => p.Athlete)
-                    .Include(p => p.Meet)
-                    .Where(p => p.TrackEventId == ev.Id)
-                    .ToListAsync(cancellationToken);
-
-                var performance = ev.RunningEvent ? performances.MinBy(p => p.TotalSeconds).FirstOrDefault() : performances.MaxBy(p => p.TotalInches).FirstOrDefault();
-
-                if (ev.RelayEvent)
-                {
-                    var matching = await db.Performances
-                        .Include(p => p.Athlete)
-                        .Include(p => p.Meet)
-                        .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
-                        .Select(p => p.Athlete)
-                        .ToListAsync(cancellationToken);
-
-                    performanceDictionary = new KeyValuePair<Performance, List<Athlete>>(performance, matching);
-                }
-                else
-                {
-                    performanceDictionary = new KeyValuePair<Performance, List<Athlete>>(performance, new List<Athlete> { performance.Athlete });
-                }
-
-                girlsEventsWithTopPerformance.Add(ev, performanceDictionary);
-            }
-
-            var viewModel = new LeaderboardViewModel(boysEventsWithTopPerformance, girlsEventsWithTopPerformance);
+            var viewModel = new LeaderboardViewModel(boysLeaderboardPerformances, girlsLeaderboardPerformances);
             return View(viewModel);
         }
 
         [Route("leaderboard/{eventName}")]
-        public async Task<IActionResult> EventLeaderboard(string eventName)
+        public IActionResult EventLeaderboard(string eventName)
         {
-            var trackEvents = await db.TrackEvents.ToListAsync();
+            var trackEvents = trackEventManager.TrackEvents;
             var selectedEvent = trackEvents.FirstOrDefault(t => t.UrlName == eventName);
             if (selectedEvent == null)
             {
                 return NotFound();
             }
 
-            var performances = await db.Performances
-                .Include(p => p.Athlete)
-                .Include(p => p.Meet)
-                .Where(p => p.TrackEventId == selectedEvent.Id)
-                .ToListAsync();
+            var eventLeaderboardPerformances = performanceManager.GetEventLeaderboardPerformances(selectedEvent);
 
-            var performancesDictionary = new Dictionary<Performance, List<Athlete>>();
-            performances = selectedEvent.RunningEvent ? performances.OrderBy(p => p.TotalSeconds).ToList() : performances.OrderByDescending(p => p.TotalInches).ToList();
-            if (selectedEvent.RelayEvent)
-            {
-                if (selectedEvent.RunningEvent)
-                {
-                    performances = performances.DistinctBy(p => p.TotalSeconds).ToList();
-
-                    foreach (var performance in performances)
-                    {
-                        var matching = await db.Performances
-                            .Include(p => p.Athlete)
-                            .Include(p => p.Meet)
-                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
-                            .Select(p => p.Athlete)
-                            .ToListAsync();
-
-                        await SetPersonalBest(performance);
-                        await SetSeasonBest(performance);
-
-                        performancesDictionary.Add(performance, matching);
-                    }
-                }
-                else
-                {
-                    performances = performances.DistinctBy(p => p.TotalInches).ToList();
-
-                    foreach (var performance in performances)
-                    {
-                        var matching = await db.Performances
-                            .Include(p => p.Athlete)
-                            .Include(p => p.Meet)
-                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Feet == performance.Feet && p.Inches == performance.Inches && p.FractionalInches == performance.FractionalInches)
-                            .Select(p => p.Athlete)
-                            .ToListAsync();
-
-                        await SetPersonalBest(performance);
-                        await SetSeasonBest(performance);
-
-                        performancesDictionary.Add(performance, matching);
-                    }
-                }
-            }
-            else
-            {
-                foreach (var performance in performances)
-                {
-                    await SetPersonalBest(performance);
-                    await SetSeasonBest(performance);
-
-                    performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
-                }
-            }
-
-            var viewModel = new EventLeaderboardViewModel(selectedEvent, performancesDictionary, false);
+            var viewModel = new EventLeaderboardViewModel(selectedEvent, eventLeaderboardPerformances, false);
 
             return View("EventLeaderboard", viewModel);
         }
 
         [Route("leaderboard/{eventName}/prs")]
-        public async Task<IActionResult> PrEventLeaderboard(string eventName)
+        public IActionResult PrEventLeaderboard(string eventName)
         {
-            var trackEvents = await db.TrackEvents.ToListAsync();
+            var trackEvents = trackEventManager.TrackEvents;
             var selectedEvent = trackEvents.FirstOrDefault(t => t.UrlName == eventName);
             if (selectedEvent == null)
             {
                 return NotFound();
             }
 
-            var performances = await db.Performances
-                .Include(p => p.Athlete)
-                .Include(p => p.Meet)
-                .Where(p => p.TrackEventId == selectedEvent.Id)
-                .ToListAsync();
+            var eventLeaderboardPerformances = performanceManager.GetEventLeaderboardPrPerformances(selectedEvent);
 
-            var performancesDictionary = new Dictionary<Performance, List<Athlete>>();
-            performances = selectedEvent.RunningEvent ? performances.OrderBy(p => p.TotalSeconds).ToList() : performances.OrderByDescending(p => p.TotalInches).ToList();
-            if (selectedEvent.RelayEvent)
-            {
-                if (selectedEvent.RunningEvent)
-                {
-                    performances = performances.DistinctBy(p => p.TotalSeconds).ToList();
-
-                    foreach (var performance in performances)
-                    {
-                        var matching = await db.Performances
-                            .Include(p => p.Athlete)
-                            .Include(p => p.Meet)
-                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Minutes == performance.Minutes && p.Seconds == performance.Seconds && p.Milliseconds == performance.Milliseconds)
-                            .Select(p => p.Athlete)
-                            .ToListAsync();
-
-                        var outdoorPerformances = performancesDictionary.Where(x => x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
-                        var indoorPerformances = performancesDictionary.Where(x => !x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
-
-                        await SetPersonalBest(performance);
-                        await SetSeasonBest(performance);
-
-                        if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
-                        {
-                            performancesDictionary.Add(performance, matching);
-                        }
-                        else if (!indoorPerformances.Any() && !performance.Meet.Outdoor)
-                        {
-                            performancesDictionary.Add(performance, matching);
-                        }
-                        else if (!performancesDictionary.Values.Any(x => x.All(matching.Contains)))
-                        {
-                            performancesDictionary.Add(performance, matching);
-                        }
-                    }
-                }
-                else
-                {
-                    performances = performances.DistinctBy(p => p.TotalInches).ToList();
-
-                    foreach (var performance in performances)
-                    {
-                        var matching = await db.Performances
-                            .Include(p => p.Athlete)
-                            .Include(p => p.Meet)
-                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId && p.Feet == performance.Feet && p.Inches == performance.Inches && p.FractionalInches == performance.FractionalInches)
-                            .Select(p => p.Athlete)
-                            .ToListAsync();
-
-                        var outdoorPerformances = performancesDictionary.Where(x => x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
-                        var indoorPerformances = performancesDictionary.Where(x => !x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
-
-                        await SetPersonalBest(performance);
-                        await SetSeasonBest(performance);
-
-                        if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
-                        {
-                            performancesDictionary.Add(performance, matching);
-                        }
-                        else if (!indoorPerformances.Any() && !performance.Meet.Outdoor)
-                        {
-                            performancesDictionary.Add(performance, matching);
-                        }
-                        else if (!performancesDictionary.Values.Any(x => x.All(matching.Contains)))
-                        {
-                            performancesDictionary.Add(performance, matching);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                foreach (var performance in performances)
-                {
-                    var outdoorPerformances = performancesDictionary.Where(x => x.Key.Meet.Outdoor && x.Value.All(new List<Athlete> { performance.Athlete }.Contains));
-                    var indoorPerformances = performancesDictionary.Where(x => !x.Key.Meet.Outdoor && x.Value.All(new List<Athlete> { performance.Athlete }.Contains));
-
-                    await SetPersonalBest(performance);
-                    await SetSeasonBest(performance);
-
-                    if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
-                    {
-                        performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
-                    }
-                    else if (!indoorPerformances.Any() && !performance.Meet.Outdoor)
-                    {
-                        performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
-                    }
-                    else if (!performancesDictionary.Values.Any(x => x.All((new List<Athlete> { performance.Athlete }).Contains)))
-                    {
-                        performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
-                    }
-                }
-            }
-
-            var viewModel = new EventLeaderboardViewModel(selectedEvent, performancesDictionary, true);
+            var viewModel = new EventLeaderboardViewModel(selectedEvent, eventLeaderboardPerformances, true);
 
             return View("EventLeaderboard", viewModel);
         }
@@ -355,152 +172,6 @@ namespace CloverleafTrack.Controllers
             var eventPerformances = await GetEventPerformances(athlete);
 
             return View(new AthleteViewModel(athlete, lifetimePrs, seasonPrs, eventPerformances));
-        }
-
-        private List<LifetimePr> GetLifetimePrs(Athlete athlete)
-        {
-            var lifetimePrs = new List<LifetimePr>();
-            var groupedPerformances = athlete.Performances.GroupBy(p => p.TrackEvent).OrderBy(g => g.Key.SortOrder);
-            foreach (var group in groupedPerformances)
-            {
-                Performance outdoorLifetimePr = null;
-                Performance indoorLifetimePr = null;
-
-                if (group.Any(p => p.Meet.Outdoor))
-                {
-                    outdoorLifetimePr = group.Key.RunningEvent ? group.Where(p => p.Meet.Outdoor).MinBy(p => p.TotalSeconds).First() : group.Where(p => p.Meet.Outdoor).MaxBy(p => p.TotalInches).First();
-                }
-
-                if (group.Any(p => !p.Meet.Outdoor))
-                {
-                    indoorLifetimePr = group.Key.RunningEvent ? group.Where(p => !p.Meet.Outdoor).MinBy(p => p.TotalSeconds).First() : group.Where(p => !p.Meet.Outdoor).MaxBy(p => p.TotalInches).First();
-                }
-
-                var lifetimePr = new LifetimePr(group.Key, outdoorLifetimePr, indoorLifetimePr);
-                lifetimePrs.Add(lifetimePr);
-            }
-
-            return lifetimePrs;
-        }
-
-        private List<SeasonPr> GetSeasonPrs(Athlete athlete)
-        {
-            var seasonPrs = new List<SeasonPr>();
-
-            var performancesGroupedBySeason = athlete.Performances.GroupBy(p => p.Meet.Season).OrderByDescending(g => g.Key.Name);
-            foreach (var group in performancesGroupedBySeason)
-            {
-                var eventPrs = new List<EventPr>();
-
-                var seasonPerformancesGroupedByEvent = group.GroupBy(p => p.TrackEvent).OrderBy(p => p.Key.SortOrder);
-                foreach (var eventGroup in seasonPerformancesGroupedByEvent)
-                {
-                    Performance outdoorSeasonPr = null;
-                    Performance indoorSeasonPr = null;
-
-                    if (eventGroup.Any(p => p.Meet.Outdoor))
-                    {
-                        outdoorSeasonPr = eventGroup.Key.RunningEvent ? eventGroup.Where(p => p.Meet.Outdoor).MinBy(p => p.TotalSeconds).FirstOrDefault() : eventGroup.Where(p => p.Meet.Outdoor).MaxBy(p => p.TotalInches).FirstOrDefault();
-                    }
-
-                    if (eventGroup.Any(p => !p.Meet.Outdoor))
-                    {
-                        indoorSeasonPr = eventGroup.Key.RunningEvent ? eventGroup.Where(p => !p.Meet.Outdoor).MinBy(p => p.TotalSeconds).FirstOrDefault() : eventGroup.Where(p => !p.Meet.Outdoor).MaxBy(p => p.TotalInches).FirstOrDefault();
-                    }
-
-                    var eventPr = new EventPr(eventGroup.Key, outdoorSeasonPr, indoorSeasonPr);
-                    eventPrs.Add(eventPr);
-                }
-
-                var seasonPr = new SeasonPr(group.Key, eventPrs);
-                seasonPrs.Add(seasonPr);
-            }
-
-            return seasonPrs;
-        }
-
-        private async Task<List<EventPerformance>> GetEventPerformances(Athlete athlete)
-        {
-            var eventPerformances = new List<EventPerformance>();
-
-            var performancesGroupedByEvent = athlete.Performances.GroupBy(p => p.TrackEvent).OrderBy(p => p.Key.SortOrder);
-            foreach (var eventGroup in performancesGroupedByEvent)
-            {
-                IOrderedEnumerable<Performance> performances;
-                if (eventGroup.Key.RunningEvent)
-                {
-                    performances = eventGroup.OrderBy(p => p.TotalSeconds);
-                }
-                else
-                {
-                    performances = eventGroup.OrderByDescending(p => p.TotalInches);
-                }
-
-                foreach (var performance in performances)
-                {
-                    await SetPersonalBest(performance);
-                    await SetSeasonBest(performance);
-                }
-
-                var eventPerformance = new EventPerformance(eventGroup.Key, performances);
-                eventPerformances.Add(eventPerformance);
-            }
-
-            return eventPerformances;
-        }
-
-        private async Task SetPersonalBest(Performance performance)
-        {
-            var athletePerformances = await db.Performances
-                .Include(p => p.TrackEvent)
-                .Include(p => p.Athlete)
-                .Include(p => p.Meet)
-                .Where(p => p.AthleteId == performance.AthleteId && p.TrackEventId == performance.TrackEventId && p.Meet.Outdoor == performance.Meet.Outdoor)
-                .ToListAsync();
-
-            if (performance.TrackEvent.RunningEvent)
-            {
-                var best = athletePerformances.MinBy(p => p.TotalSeconds).FirstOrDefault();
-                if (best.TotalSeconds == performance.TotalSeconds)
-                {
-                    performance.IsPersonalBest = true;
-                }
-            }
-            else
-            {
-                var best = athletePerformances.MaxBy(p => p.TotalInches).FirstOrDefault();
-                if (best.TotalInches == performance.TotalInches)
-                {
-                    performance.IsPersonalBest = true;
-                }
-            }
-        }
-
-        private async Task SetSeasonBest(Performance performance)
-        {
-            var athletePerformances = await db.Performances
-                .Include(p => p.TrackEvent)
-                .Include(p => p.Athlete)
-                .Include(p => p.Meet)
-                .Where(p => p.AthleteId == performance.AthleteId && p.TrackEventId == performance.TrackEventId && p.Meet.Outdoor == performance.Meet.Outdoor && p.Meet.SeasonId == performance.Meet.SeasonId)
-                .ToListAsync();
-
-            if (performance.TrackEvent.RunningEvent)
-            {
-                var best = athletePerformances.MinBy(p => p.TotalSeconds).FirstOrDefault();
-                if (best.TotalSeconds == performance.TotalSeconds)
-                {
-                    performance.IsSeasonBest = true;
-                }
-            }
-            else
-            {
-                var best = athletePerformances.MaxBy(p => p.TotalInches).FirstOrDefault();
-                if (best.TotalInches == performance.TotalInches)
-                {
-                    performance.IsSeasonBest = true;
-                }
-            }
         }
 
         [Route("meets")]
@@ -700,7 +371,7 @@ namespace CloverleafTrack.Controllers
                     await SetPersonalBest(boysBest);
                     await SetSeasonBest(boysBest);
 
-                    if (trackEvent.RelayEvent)
+                    if (trackEvent != null && trackEvent.RelayEvent)
                     {
                         if (trackEvent.RunningEvent)
                         {
@@ -741,7 +412,7 @@ namespace CloverleafTrack.Controllers
                     await SetPersonalBest(girlsBest);
                     await SetSeasonBest(girlsBest);
 
-                    if (trackEvent.RelayEvent)
+                    if (trackEvent != null && trackEvent.RelayEvent)
                     {
                         if (trackEvent.RunningEvent)
                         {
@@ -806,7 +477,7 @@ namespace CloverleafTrack.Controllers
                     await SetPersonalBest(boysBest);
                     await SetSeasonBest(boysBest);
 
-                    if (trackEvent.RelayEvent)
+                    if (trackEvent != null && trackEvent.RelayEvent)
                     {
                         if (trackEvent.RunningEvent)
                         {
@@ -847,7 +518,7 @@ namespace CloverleafTrack.Controllers
                     await SetPersonalBest(girlsBest);
                     await SetSeasonBest(girlsBest);
 
-                    if (trackEvent.RelayEvent)
+                    if (trackEvent != null && trackEvent.RelayEvent)
                     {
                         if (trackEvent.RunningEvent)
                         {
@@ -970,6 +641,322 @@ namespace CloverleafTrack.Controllers
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
+
+        private async Task<Dictionary<Performance, List<Athlete>>> GetPerformanceDictionary(List<Performance> performances, TrackEvent selectedEvent)
+        {
+            var performancesDictionary = new Dictionary<Performance, List<Athlete>>();
+            performances = selectedEvent.RunningEvent
+                ? performances.OrderBy(p => p.TotalSeconds).ToList()
+                : performances.OrderByDescending(p => p.TotalInches).ToList();
+            if (selectedEvent.RelayEvent)
+            {
+                if (selectedEvent.RunningEvent)
+                {
+                    performances = performances.DistinctBy(p => p.TotalSeconds).ToList();
+
+                    foreach (var performance in performances)
+                    {
+                        var matching = await db.Performances
+                            .Include(p => p.Athlete)
+                            .Include(p => p.Meet)
+                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId &&
+                                        p.Minutes == performance.Minutes && p.Seconds == performance.Seconds &&
+                                        p.Milliseconds == performance.Milliseconds)
+                            .Select(p => p.Athlete)
+                            .ToListAsync();
+
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
+                        performancesDictionary.Add(performance, matching);
+                    }
+                }
+                else
+                {
+                    performances = performances.DistinctBy(p => p.TotalInches).ToList();
+
+                    foreach (var performance in performances)
+                    {
+                        var matching = await db.Performances
+                            .Include(p => p.Athlete)
+                            .Include(p => p.Meet)
+                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId &&
+                                        p.Feet == performance.Feet && p.Inches == performance.Inches &&
+                                        p.FractionalInches == performance.FractionalInches)
+                            .Select(p => p.Athlete)
+                            .ToListAsync();
+
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
+                        performancesDictionary.Add(performance, matching);
+                    }
+                }
+            }
+            else
+            {
+                foreach (var performance in performances)
+                {
+                    await SetPersonalBest(performance);
+                    await SetSeasonBest(performance);
+
+                    performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
+                }
+            }
+
+            return performancesDictionary;
+        }
+
+        private async Task<Dictionary<Performance, List<Athlete>>> GetPrPerformances(List<Performance> performances, TrackEvent selectedEvent)
+        {
+            var performancesDictionary = new Dictionary<Performance, List<Athlete>>();
+            performances = selectedEvent.RunningEvent
+                ? performances.OrderBy(p => p.TotalSeconds).ToList()
+                : performances.OrderByDescending(p => p.TotalInches).ToList();
+            if (selectedEvent.RelayEvent)
+            {
+                if (selectedEvent.RunningEvent)
+                {
+                    performances = performances.DistinctBy(p => p.TotalSeconds).ToList();
+
+                    foreach (var performance in performances)
+                    {
+                        var matching = await db.Performances
+                            .Include(p => p.Athlete)
+                            .Include(p => p.Meet)
+                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId &&
+                                        p.Minutes == performance.Minutes && p.Seconds == performance.Seconds &&
+                                        p.Milliseconds == performance.Milliseconds)
+                            .Select(p => p.Athlete)
+                            .ToListAsync();
+
+                        var outdoorPerformances =
+                            performancesDictionary.Where(x => x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
+                        var indoorPerformances =
+                            performancesDictionary.Where(x => !x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
+
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
+                        if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                        else if (!indoorPerformances.Any() && !performance.Meet.Outdoor)
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                        else if (!performancesDictionary.Values.Any(x => x.All(matching.Contains)))
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                    }
+                }
+                else
+                {
+                    performances = performances.DistinctBy(p => p.TotalInches).ToList();
+
+                    foreach (var performance in performances)
+                    {
+                        var matching = await db.Performances
+                            .Include(p => p.Athlete)
+                            .Include(p => p.Meet)
+                            .Where(p => p.TrackEventId == performance.TrackEventId && p.MeetId == performance.MeetId &&
+                                        p.Feet == performance.Feet && p.Inches == performance.Inches &&
+                                        p.FractionalInches == performance.FractionalInches)
+                            .Select(p => p.Athlete)
+                            .ToListAsync();
+
+                        var outdoorPerformances =
+                            performancesDictionary.Where(x => x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
+                        var indoorPerformances =
+                            performancesDictionary.Where(x => !x.Key.Meet.Outdoor && x.Value.All(matching.Contains));
+
+                        await SetPersonalBest(performance);
+                        await SetSeasonBest(performance);
+
+                        if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                        else if (!indoorPerformances.Any() && !performance.Meet.Outdoor)
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                        else if (!performancesDictionary.Values.Any(x => x.All(matching.Contains)))
+                        {
+                            performancesDictionary.Add(performance, matching);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (var performance in performances)
+                {
+                    var outdoorPerformances = performancesDictionary.Where(x =>
+                        x.Key.Meet.Outdoor && x.Value.All(new List<Athlete> { performance.Athlete }.Contains));
+                    var indoorPerformances = performancesDictionary.Where(x =>
+                        !x.Key.Meet.Outdoor && x.Value.All(new List<Athlete> { performance.Athlete }.Contains));
+
+                    await SetPersonalBest(performance);
+                    await SetSeasonBest(performance);
+
+                    if (!outdoorPerformances.Any() && performance.Meet.Outdoor)
+                    {
+                        performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
+                    }
+                    else if (!indoorPerformances.Any() && !performance.Meet.Outdoor)
+                    {
+                        performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
+                    }
+                    else if (!performancesDictionary.Values.Any(x => x.All((new List<Athlete> { performance.Athlete }).Contains)))
+                    {
+                        performancesDictionary.Add(performance, new List<Athlete> { performance.Athlete });
+                    }
+                }
+            }
+
+            return performancesDictionary;
+        }
+
+        private List<LifetimePr> GetLifetimePrs(Athlete athlete)
+        {
+            var lifetimePrs = new List<LifetimePr>();
+            var groupedPerformances = athlete.Performances.GroupBy(p => p.TrackEvent).OrderBy(g => g.Key.SortOrder);
+            foreach (var group in groupedPerformances)
+            {
+                Performance outdoorLifetimePr = null;
+                Performance indoorLifetimePr = null;
+
+                if (group.Any(p => p.Meet.Outdoor))
+                {
+                    outdoorLifetimePr = group.Key.RunningEvent ? group.Where(p => p.Meet.Outdoor).MinBy(p => p.TotalSeconds).First() : group.Where(p => p.Meet.Outdoor).MaxBy(p => p.TotalInches).First();
+                }
+
+                if (group.Any(p => !p.Meet.Outdoor))
+                {
+                    indoorLifetimePr = group.Key.RunningEvent ? group.Where(p => !p.Meet.Outdoor).MinBy(p => p.TotalSeconds).First() : group.Where(p => !p.Meet.Outdoor).MaxBy(p => p.TotalInches).First();
+                }
+
+                var lifetimePr = new LifetimePr(group.Key, outdoorLifetimePr, indoorLifetimePr);
+                lifetimePrs.Add(lifetimePr);
+            }
+
+            return lifetimePrs;
+        }
+
+        private List<SeasonPr> GetSeasonPrs(Athlete athlete)
+        {
+            var seasonPrs = new List<SeasonPr>();
+
+            var performancesGroupedBySeason = athlete.Performances.GroupBy(p => p.Meet.Season).OrderByDescending(g => g.Key.Name);
+            foreach (var group in performancesGroupedBySeason)
+            {
+                var eventPrs = new List<EventPr>();
+
+                var seasonPerformancesGroupedByEvent = group.GroupBy(p => p.TrackEvent).OrderBy(p => p.Key.SortOrder);
+                foreach (var eventGroup in seasonPerformancesGroupedByEvent)
+                {
+                    Performance outdoorSeasonPr = null;
+                    Performance indoorSeasonPr = null;
+
+                    if (eventGroup.Any(p => p.Meet.Outdoor))
+                    {
+                        outdoorSeasonPr = eventGroup.Key.RunningEvent ? eventGroup.Where(p => p.Meet.Outdoor).MinBy(p => p.TotalSeconds).FirstOrDefault() : eventGroup.Where(p => p.Meet.Outdoor).MaxBy(p => p.TotalInches).FirstOrDefault();
+                    }
+
+                    if (eventGroup.Any(p => !p.Meet.Outdoor))
+                    {
+                        indoorSeasonPr = eventGroup.Key.RunningEvent ? eventGroup.Where(p => !p.Meet.Outdoor).MinBy(p => p.TotalSeconds).FirstOrDefault() : eventGroup.Where(p => !p.Meet.Outdoor).MaxBy(p => p.TotalInches).FirstOrDefault();
+                    }
+
+                    var eventPr = new EventPr(eventGroup.Key, outdoorSeasonPr, indoorSeasonPr);
+                    eventPrs.Add(eventPr);
+                }
+
+                var seasonPr = new SeasonPr(group.Key, eventPrs);
+                seasonPrs.Add(seasonPr);
+            }
+
+            return seasonPrs;
+        }
+
+        private async Task<List<EventPerformance>> GetEventPerformances(Athlete athlete)
+        {
+            var eventPerformances = new List<EventPerformance>();
+
+            var performancesGroupedByEvent = athlete.Performances.GroupBy(p => p.TrackEvent).OrderBy(p => p.Key.SortOrder);
+            foreach (var eventGroup in performancesGroupedByEvent)
+            {
+                var performances = eventGroup.Key.RunningEvent ? eventGroup.OrderBy(p => p.TotalSeconds) : eventGroup.OrderByDescending(p => p.TotalInches);
+
+                foreach (var performance in performances)
+                {
+                    await SetPersonalBest(performance);
+                    await SetSeasonBest(performance);
+                }
+
+                var eventPerformance = new EventPerformance(eventGroup.Key, performances);
+                eventPerformances.Add(eventPerformance);
+            }
+
+            return eventPerformances;
+        }
+
+        private async Task SetPersonalBest(Performance performance)
+        {
+            var athletePerformances = await db.Performances
+                .Include(p => p.TrackEvent)
+                .Include(p => p.Athlete)
+                .Include(p => p.Meet)
+                .Where(p => p.AthleteId == performance.AthleteId && p.TrackEventId == performance.TrackEventId && p.Meet.Outdoor == performance.Meet.Outdoor)
+                .ToListAsync();
+
+            if (performance.TrackEvent.RunningEvent)
+            {
+                var best = athletePerformances.MinBy(p => p.TotalSeconds).FirstOrDefault();
+                if (Math.Abs(best.TotalSeconds - performance.TotalSeconds) < .01)
+                {
+                    performance.IsPersonalBest = true;
+                }
+            }
+            else
+            {
+                var best = athletePerformances.MaxBy(p => p.TotalInches).FirstOrDefault();
+                if (Math.Abs(best.TotalInches - performance.TotalInches) < .01)
+                {
+                    performance.IsPersonalBest = true;
+                }
+            }
+        }
+
+        private async Task SetSeasonBest(Performance performance)
+        {
+            var athletePerformances = await db.Performances
+                .Include(p => p.TrackEvent)
+                .Include(p => p.Athlete)
+                .Include(p => p.Meet)
+                .Where(p => p.AthleteId == performance.AthleteId && p.TrackEventId == performance.TrackEventId && p.Meet.Outdoor == performance.Meet.Outdoor && p.Meet.SeasonId == performance.Meet.SeasonId)
+                .ToListAsync();
+
+            if (performance.TrackEvent.RunningEvent)
+            {
+                var best = athletePerformances.MinBy(p => p.TotalSeconds).FirstOrDefault();
+                if (Math.Abs(best.TotalSeconds - performance.TotalSeconds) < .01)
+                {
+                    performance.IsSeasonBest = true;
+                }
+            }
+            else
+            {
+                var best = athletePerformances.MaxBy(p => p.TotalInches).FirstOrDefault();
+                if (Math.Abs(best.TotalInches - performance.TotalInches) < .01)
+                {
+                    performance.IsSeasonBest = true;
+                }
+            }
         }
     }
 }
