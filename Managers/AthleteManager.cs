@@ -1,14 +1,16 @@
-﻿using CloverleafTrack.Data;
-using CloverleafTrack.Models;
-
-using Microsoft.EntityFrameworkCore;
-
-using MoreLinq;
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using CloverleafTrack.Data;
+using CloverleafTrack.Models;
+using CloverleafTrack.Options;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+
+using MoreLinq;
 
 namespace CloverleafTrack.Managers
 {
@@ -16,6 +18,8 @@ namespace CloverleafTrack.Managers
     {
         public int Count { get; }
         public List<Athlete> Athletes { get; }
+        public List<Athlete> CurrentAthletes { get; }
+        public List<Athlete> GraduatedAthletes { get; }
         public Task Reload(CancellationToken cancellationToken);
         public List<Performance> GetAthletePrs(Athlete athlete);
         public Dictionary<Season, List<Performance>> GetAthleteSeasonBests(Athlete athlete);
@@ -24,19 +28,30 @@ namespace CloverleafTrack.Managers
     public class AthleteManager : IAthleteManager
     {
         private readonly CloverleafTrackDataContext db;
+        private readonly CurrentSeasonOptions currentSeason;
         private readonly ITrackEventManager trackEventManager;
         private readonly IPerformanceManager performanceManager;
 
-        public AthleteManager(CloverleafTrackDataContext db, ITrackEventManager trackEventManager, IPerformanceManager performanceManager)
+        public AthleteManager(CloverleafTrackDataContext db, ITrackEventManager trackEventManager, IPerformanceManager performanceManager, IOptions<CurrentSeasonOptions> currentSeason)
         {
             this.db = db;
             this.trackEventManager = trackEventManager;
             this.performanceManager = performanceManager;
+            this.currentSeason = currentSeason.Value;
         }
 
         public int Count => Cache.AllAthletes.Count;
-
         public List<Athlete> Athletes => Cache.AllAthletes;
+        public List<Athlete> CurrentAthletes => Athletes
+            .Where(a => a.GraduationYear >= currentSeason.GraduationYear && a.GraduationYear <= currentSeason.GraduationYear + 3)
+            .OrderBy(a => a.UrlName)
+            .ToList();
+
+        public List<Athlete> GraduatedAthletes => Athletes
+            .Where(a => a.GraduationYear < currentSeason.GraduationYear)
+            .OrderByDescending(a => a.GraduationYear)
+            .ThenBy(a => a.UrlName)
+            .ToList();
 
         public async Task Reload(CancellationToken cancellationToken)
         {

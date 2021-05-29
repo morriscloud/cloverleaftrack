@@ -1,4 +1,11 @@
-﻿using CloverleafTrack.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using CloverleafTrack.Data;
 using CloverleafTrack.Managers;
 using CloverleafTrack.Models;
 using CloverleafTrack.Options;
@@ -9,13 +16,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using MoreLinq;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CloverleafTrack.Controllers
 {
@@ -124,20 +124,10 @@ namespace CloverleafTrack.Controllers
         }
 
         [Route("roster")]
-        public async Task<IActionResult> Roster()
+        public IActionResult Roster()
         {
-            var currentAthletes = await db.Athletes
-                .Where(a => a.GraduationYear >= currentSeason.GraduationYear && a.GraduationYear <= (currentSeason.GraduationYear + 3))
-                .OrderBy(a => a.FirstName)
-                .ThenBy(a => a.LastName)
-                .ToListAsync();
-
-            var graduatedAthletes = await db.Athletes
-                .Where(a => a.GraduationYear < currentSeason.GraduationYear)
-                .OrderByDescending(a => a.GraduationYear)
-                .ThenBy(a => a.FirstName)
-                .ThenBy(a => a.LastName)
-                .ToListAsync();
+            var currentAthletes = athleteManager.CurrentAthletes;
+            var graduatedAthletes = athleteManager.GraduatedAthletes;
 
             return View(new RosterViewModel(currentAthletes, graduatedAthletes));
         }

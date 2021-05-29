@@ -1,16 +1,16 @@
-﻿using CloverleafTrack.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using CloverleafTrack.Data;
 using CloverleafTrack.Models;
 using CloverleafTrack.ViewModels;
 
 using Microsoft.EntityFrameworkCore;
 
 using MoreLinq;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CloverleafTrack.Managers
 {
@@ -155,7 +155,7 @@ namespace CloverleafTrack.Managers
                             Cache.AthleteSeasonBests[performance.Athlete] = new();
                         }
 
-                        Cache.AthleteSeasonBests[performance.Athlete][performance.Meet.Season]
+                        Cache.AthleteSeasonBests[performance.Athlete][performance.Meet.Season].Add(performance);
                     }
                 }
             }
