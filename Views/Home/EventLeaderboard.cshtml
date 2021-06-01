@@ -118,13 +118,13 @@
                             </th>
                             <td class="text-nowrap align-middle">
                                 @performance.Performance.PerformanceFormatted
-                                @if (performance.Performance.IsPersonalBest)
+                                @if (!Model.Prs && performance.Performance.IsPersonalBest)
                                 {
-                                    <span class="badge bg-warning">⭐</span>
+                                    <span class="badge bg-warning" data-bs-toggle="tooltip" data-bs-placement="right" title="Personal Record">⭐</span>
                                 }
-                                else if (performance.Performance.IsSeasonBest)
+                                else if (!Model.Prs && performance.Performance.IsSeasonBest)
                                 {
-                                    <span class="badge bg-info">📅</span>
+                                    <span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="right" title="Season Best">📅</span>
                                 }
                             </td>
                             <td class="align-middle">@performance.Performance.Meet.Date.ToString("MM/dd/yyyy")</td>

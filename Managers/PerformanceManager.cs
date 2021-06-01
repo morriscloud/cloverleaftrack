@@ -1,16 +1,16 @@
-﻿using CloverleafTrack.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using CloverleafTrack.Data;
 using CloverleafTrack.Models;
 using CloverleafTrack.ViewModels;
 
 using Microsoft.EntityFrameworkCore;
 
 using MoreLinq;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CloverleafTrack.Managers
 {
