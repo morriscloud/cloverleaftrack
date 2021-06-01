@@ -199,11 +199,11 @@
                                 @performance.Performance.PerformanceFormatted
                                 @if (performance.Performance.IsPersonalBest)
                                 {
-                                    <span class="badge bg-secondary">PR</span>
+                                    <span class="badge bg-warning">⭐</span>
                                 }
-                                @if (performance.Performance.IsSeasonBest)
+                                else if (performance.Performance.IsSeasonBest)
                                 {
-                                    <span class="badge bg-secondary">SB</span>
+                                    <span class="badge bg-info">📅</span>
                                 }
                             </td>
                             <td class="align-middle">@performance.Performance.Meet.Date.ToString("MM/dd/yyyy")</td>

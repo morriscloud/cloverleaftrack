@@ -81,11 +81,11 @@
                                     @performance.Key.PerformanceFormatted
                                     @if (performance.Key.IsPersonalBest)
                                     {
-                                        <span class="badge bg-secondary">PR</span>
+                                        <span class="badge bg-warning">⭐</span>
                                     }
-                                    @if (performance.Key.IsSeasonBest)
+                                    else if (performance.Key.IsSeasonBest)
                                     {
-                                        <span class="badge bg-secondary">SB</span>
+                                        <span class="badge bg-info">📅</span>
                                     }
                                 </td>
                             </tr>
@@ -133,11 +133,11 @@
                                         @performance.Key.PerformanceFormatted
                                         @if (performance.Key.IsPersonalBest)
                                         {
-                                            <span class="badge bg-secondary">PR</span>
+                                            <span class="badge bg-warning">⭐</span>
                                         }
-                                        @if (performance.Key.IsSeasonBest)
+                                        else if (performance.Key.IsSeasonBest)
                                         {
-                                            <span class="badge bg-secondary">SB</span>
+                                            <span class="badge bg-info">📅</span>
                                         }
                                     </td>
                                 </tr>

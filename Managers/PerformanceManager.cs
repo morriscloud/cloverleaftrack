@@ -155,7 +155,7 @@ namespace CloverleafTrack.Managers
                             Cache.AthleteSeasonBests[performance.Athlete] = new();
                         }
 
-                        Cache.AthleteSeasonBests[performance.Athlete][performance.Meet.Season]
+                        Cache.AthleteSeasonBests[performance.Athlete][performance.Meet.Season].Add(performance);
                     }
                 }
             }
