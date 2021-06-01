@@ -81,11 +81,11 @@
                                     @performance.Key.PerformanceFormatted
                                     @if (performance.Key.IsPersonalBest)
                                     {
-                                        <span class="badge bg-warning">⭐</span>
+                                    <span class="badge bg-warning" data-bs-toggle="tooltip" data-bs-placement="right" title="Personal Record">⭐</span>
                                     }
                                     else if (performance.Key.IsSeasonBest)
                                     {
-                                        <span class="badge bg-info">📅</span>
+                                <span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="right" title="@performance.Key.Meet.Season.Name Season Best">📅</span>
                                     }
                                 </td>
                             </tr>
@@ -133,11 +133,11 @@
                                         @performance.Key.PerformanceFormatted
                                         @if (performance.Key.IsPersonalBest)
                                         {
-                                            <span class="badge bg-warning">⭐</span>
+                                        <span class="badge bg-warning" data-bs-toggle="tooltip" data-bs-placement="right" title="Personal Record">⭐</span>
                                         }
                                         else if (performance.Key.IsSeasonBest)
                                         {
-                                            <span class="badge bg-info">📅</span>
+                                            <span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="right" title="@performance.Key.Meet.Season.Name Season Best">📅</span>
                                         }
                                     </td>
                                 </tr>

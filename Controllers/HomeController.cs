@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-
-using CloverleafTrack.Data;
+﻿using CloverleafTrack.Data;
 using CloverleafTrack.Managers;
 using CloverleafTrack.Models;
 using CloverleafTrack.Options;
@@ -16,6 +9,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 using MoreLinq;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CloverleafTrack.Controllers
 {
@@ -189,7 +189,9 @@ namespace CloverleafTrack.Controllers
         [Route("meets/{meetName}")]
         public async Task<IActionResult> MeetResults(string meetName)
         {
-            var meets = await db.Meets.ToListAsync();
+            var meets = await db.Meets
+                .Include(m => m.Season)
+                .ToListAsync();
             var selectedMeet = meets.FirstOrDefault(m => m.UrlName == meetName);
             if (selectedMeet == null)
             {

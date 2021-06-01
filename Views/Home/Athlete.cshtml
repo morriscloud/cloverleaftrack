@@ -56,13 +56,9 @@
                                 <tr>
                                     <td class="text-nowrap align-middle">
                                         @performance.PerformanceFormatted
-                                        @if (performance.IsPersonalBest)
+                                        @if (performance.IsSeasonBest)
                                         {
-                                            <span class="badge bg-warning">⭐</span>
-                                        }
-                                        else if (performance.IsSeasonBest)
-                                        {
-                                            <span class="badge bg-info">📅</span>
+                                        <span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="right" title="@performance.Meet.Season.Name Season Best">📅</span>
                                         }
                                     </td>
                                     <td class="align-middle">@performance.Meet.Date.ToString("MM/dd/yyyy")</td>
@@ -94,13 +90,9 @@
                                 <tr>
                                     <td class="text-nowrap align-middle">
                                         @performance.PerformanceFormatted
-                                        @if (performance.IsPersonalBest)
+                                        @if (performance.IsSeasonBest)
                                         {
-                                            <span class="badge bg-warning">⭐</span>
-                                        }
-                                        else if (performance.IsSeasonBest)
-                                        {
-                                            <span class="badge bg-info">📅</span>
+                                    <span class="badge bg-info" data-bs-toggle="tooltip" data-bs-placement="right" title="@performance.Meet.Season.Name Season Best">📅</span>
                                         }
                                     </td>
                                     <td class="align-middle">@performance.Meet.Date.ToString("MM/dd/yyyy")</td>
