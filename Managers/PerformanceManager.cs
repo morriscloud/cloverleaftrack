@@ -10,8 +10,6 @@ using CloverleafTrack.ViewModels;
 
 using Microsoft.EntityFrameworkCore;
 
-using MoreLinq;
-
 namespace CloverleafTrack.Managers
 {
     public interface IPerformanceManager
@@ -199,22 +197,22 @@ namespace CloverleafTrack.Managers
             }
 
             var performance = trackEvent.RunningEvent
-                ? trackEvent.Performances.MinBy(p => p.TotalSeconds).First()
-                : trackEvent.Performances.MaxBy(p => p.TotalInches).First();
+                ? trackEvent.Performances.MinBy(p => p.TotalSeconds)
+                : trackEvent.Performances.MaxBy(p => p.TotalInches);
 
             athletes = new List<Athlete>();
 
             if (trackEvent.RelayEvent)
             {
                 var relayPerformances = trackEvent.RunningEvent
-                    ? trackEvent.Performances.Where(p => Math.Abs(p.TotalSeconds - performance.TotalSeconds) < 0.01).ToList()
-                    : trackEvent.Performances.Where(p => Math.Abs(p.TotalInches - performance.TotalInches) < 0.01).ToList();
+                    ? trackEvent.Performances.Where(p => performance != null && Math.Abs(p.TotalSeconds - performance.TotalSeconds) < 0.01).ToList()
+                    : trackEvent.Performances.Where(p => performance != null && Math.Abs(p.TotalInches - performance.TotalInches) < 0.01).ToList();
 
                 athletes.AddRange(relayPerformances.Select(p => p.Athlete));
             }
             else
             {
-                athletes.Add(performance.Athlete);
+                if (performance != null) athletes.Add(performance.Athlete);
             }
 
             return performance;

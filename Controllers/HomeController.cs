@@ -8,14 +8,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-using MoreLinq;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
+using CloverleafTrack.Models.TrackEvents;
+
+using Environment = CloverleafTrack.Models.Environment;
 
 namespace CloverleafTrack.Controllers
 {
@@ -29,8 +31,12 @@ namespace CloverleafTrack.Controllers
         private readonly IPerformanceManager performanceManager;
         private readonly ISeasonManager seasonManager;
         private readonly ITrackEventManager trackEventManager;
+        private readonly IEventManager<RunningEvent> runningEventManager;
+        private readonly IEventManager<RunningRelayEvent> runningRelayEventManager;
+        private readonly IEventManager<FieldEvent> fieldEventManager;
+        private readonly IEventManager<FieldRelayEvent> fieldRelayEventManager;
 
-        public HomeController(CloverleafTrackDataContext db, IAthleteManager athleteManager, IMeetManager meetManager, IPerformanceManager performanceManager, ISeasonManager seasonManager, ITrackEventManager trackEventManager, IOptions<CurrentSeasonOptions> currentSeason)
+        public HomeController(CloverleafTrackDataContext db, IAthleteManager athleteManager, IMeetManager meetManager, IPerformanceManager performanceManager, ISeasonManager seasonManager, ITrackEventManager trackEventManager, IEventManager<RunningEvent> runningEventManager, IEventManager<RunningRelayEvent> runningRelayEventManager, IEventManager<FieldEvent> fieldEventManager, IEventManager<FieldRelayEvent> fieldRelayEventManager, IOptions<CurrentSeasonOptions> currentSeason)
         {
             this.db = db;
             this.athleteManager = athleteManager;
@@ -38,6 +44,10 @@ namespace CloverleafTrack.Controllers
             this.performanceManager = performanceManager;
             this.seasonManager = seasonManager;
             this.trackEventManager = trackEventManager;
+            this.runningEventManager = runningEventManager;
+            this.runningRelayEventManager = runningRelayEventManager;
+            this.fieldEventManager = fieldEventManager;
+            this.fieldRelayEventManager = fieldRelayEventManager;
             this.currentSeason = currentSeason.Value;
         }
 
@@ -80,8 +90,13 @@ namespace CloverleafTrack.Controllers
         }
 
         [Route("leaderboard")]
-        public IActionResult Leaderboard()
+        public async Task<IActionResult> Leaderboard()
         {
+            var boysOutdoorFieldEvents = await fieldEventManager.GetEventsAsync(Gender.Male, Environment.Outdoor);
+            var boysIndoorFieldEvents = await fieldEventManager.GetEventsAsync(Gender.Male, Environment.Indoor);
+            var girlsOutdoorFieldEvents = await fieldEventManager.GetEventsAsync(Gender.Female, Environment.Outdoor);
+            var girlsIndoorFieldEvents = await fieldEventManager.GetEventsAsync(Gender.Female, Environment.Indoor);
+
             var boysLeaderboardPerformances = performanceManager.GetLeaderboardPerformances(trackEventManager.BoysLeaderboardEvents);
             var girlsLeaderboardPerformances = performanceManager.GetLeaderboardPerformances(trackEventManager.GirlsLeaderboardEvents);
 
@@ -355,7 +370,7 @@ namespace CloverleafTrack.Controllers
 
                 var trackEvent = trackEvents.FirstOrDefault();
 
-                var boysBest = outdoor.Key.RunningEvent ? outdoor.Where(p => !p.Athlete.Gender).MinBy(p => p.TotalSeconds).FirstOrDefault() : outdoor.Where(p => !p.Athlete.Gender).MaxBy(p => p.TotalInches).FirstOrDefault();
+                var boysBest = outdoor.Key.RunningEvent ? outdoor.Where(p => !p.Athlete.Gender).MinBy(p => p.TotalSeconds) : outdoor.Where(p => !p.Athlete.Gender).MaxBy(p => p.TotalInches);
 
                 var boysAthletes = new List<Athlete>();
                 if (boysBest != null)
@@ -363,7 +378,7 @@ namespace CloverleafTrack.Controllers
                     await SetPersonalBest(boysBest);
                     await SetSeasonBest(boysBest);
 
-                    if (trackEvent != null && trackEvent.RelayEvent)
+                    if (trackEvent is { RelayEvent: true })
                     {
                         if (trackEvent.RunningEvent)
                         {
@@ -396,7 +411,7 @@ namespace CloverleafTrack.Controllers
                     }
                 }
 
-                var girlsBest = outdoor.Key.RunningEvent ? outdoor.Where(p => p.Athlete.Gender).MinBy(p => p.TotalSeconds).FirstOrDefault() : outdoor.Where(p => p.Athlete.Gender).MaxBy(p => p.TotalInches).FirstOrDefault();
+                var girlsBest = outdoor.Key.RunningEvent ? outdoor.Where(p => p.Athlete.Gender).MinBy(p => p.TotalSeconds) : outdoor.Where(p => p.Athlete.Gender).MaxBy(p => p.TotalInches);
 
                 var girlsAthletes = new List<Athlete>();
                 if (girlsBest != null)
@@ -404,7 +419,7 @@ namespace CloverleafTrack.Controllers
                     await SetPersonalBest(girlsBest);
                     await SetSeasonBest(girlsBest);
 
-                    if (trackEvent != null && trackEvent.RelayEvent)
+                    if (trackEvent is { RelayEvent: true })
                     {
                         if (trackEvent.RunningEvent)
                         {
@@ -461,7 +476,7 @@ namespace CloverleafTrack.Controllers
 
                 var trackEvent = trackEvents.FirstOrDefault();
 
-                var boysBest = indoor.Key.RunningEvent ? indoor.Where(p => !p.Athlete.Gender).MinBy(p => p.TotalSeconds).FirstOrDefault() : indoor.Where(p => !p.Athlete.Gender).MaxBy(p => p.TotalInches).FirstOrDefault();
+                var boysBest = indoor.Key.RunningEvent ? indoor.Where(p => !p.Athlete.Gender).MinBy(p => p.TotalSeconds) : indoor.Where(p => !p.Athlete.Gender).MaxBy(p => p.TotalInches);
 
                 var boysAthletes = new List<Athlete>();
                 if (boysBest != null)
@@ -469,7 +484,7 @@ namespace CloverleafTrack.Controllers
                     await SetPersonalBest(boysBest);
                     await SetSeasonBest(boysBest);
 
-                    if (trackEvent != null && trackEvent.RelayEvent)
+                    if (trackEvent is { RelayEvent: true })
                     {
                         if (trackEvent.RunningEvent)
                         {
@@ -502,7 +517,7 @@ namespace CloverleafTrack.Controllers
                     }
                 }
 
-                var girlsBest = indoor.Key.RunningEvent ? indoor.Where(p => p.Athlete.Gender).MinBy(p => p.TotalSeconds).FirstOrDefault() : indoor.Where(p => p.Athlete.Gender).MaxBy(p => p.TotalInches).FirstOrDefault();
+                var girlsBest = indoor.Key.RunningEvent ? indoor.Where(p => p.Athlete.Gender).MinBy(p => p.TotalSeconds) : indoor.Where(p => p.Athlete.Gender).MaxBy(p => p.TotalInches);
 
                 var girlsAthletes = new List<Athlete>();
                 if (girlsBest != null)
@@ -510,7 +525,7 @@ namespace CloverleafTrack.Controllers
                     await SetPersonalBest(girlsBest);
                     await SetSeasonBest(girlsBest);
 
-                    if (trackEvent != null && trackEvent.RelayEvent)
+                    if (trackEvent is { RelayEvent: true })
                     {
                         if (trackEvent.RunningEvent)
                         {
@@ -581,12 +596,7 @@ namespace CloverleafTrack.Controllers
         {
             var seasons = await db.Seasons.ToListAsync();
             var selectedSeason = seasons.FirstOrDefault(s => s.Name == seasonName);
-            if (selectedSeason == null)
-            {
-                return NotFound();
-            }
-
-            return null;
+            return selectedSeason == null ? NotFound() : null;
         }
 
         [Route("seasons/{seasonName}/leaderboard/outdoor/prs")]
@@ -594,12 +604,7 @@ namespace CloverleafTrack.Controllers
         {
             var seasons = await db.Seasons.ToListAsync();
             var selectedSeason = seasons.FirstOrDefault(s => s.Name == seasonName);
-            if (selectedSeason == null)
-            {
-                return NotFound();
-            }
-
-            return null;
+            return selectedSeason == null ? NotFound() : null;
         }
 
         [Route("seasons/{seasonName}/leaderboard/indoor")]
@@ -607,12 +612,7 @@ namespace CloverleafTrack.Controllers
         {
             var seasons = await db.Seasons.ToListAsync();
             var selectedSeason = seasons.FirstOrDefault(s => s.Name == seasonName);
-            if (selectedSeason == null)
-            {
-                return NotFound();
-            }
-
-            return null;
+            return selectedSeason == null ? NotFound() : null;
         }
 
         [Route("seasons/{seasonName}/leaderboard/indoor/prs")]
@@ -620,12 +620,7 @@ namespace CloverleafTrack.Controllers
         {
             var seasons = await db.Seasons.ToListAsync();
             var selectedSeason = seasons.FirstOrDefault(s => s.Name == seasonName);
-            if (selectedSeason == null)
-            {
-                return NotFound();
-            }
-
-            return null;
+            return selectedSeason == null ? NotFound() : null;
         }
 
         [Route("error")]
@@ -824,12 +819,12 @@ namespace CloverleafTrack.Controllers
 
                 if (group.Any(p => p.Meet.Outdoor))
                 {
-                    outdoorLifetimePr = group.Key.RunningEvent ? group.Where(p => p.Meet.Outdoor).MinBy(p => p.TotalSeconds).First() : group.Where(p => p.Meet.Outdoor).MaxBy(p => p.TotalInches).First();
+                    outdoorLifetimePr = group.Key.RunningEvent ? group.Where(p => p.Meet.Outdoor).MinBy(p => p.TotalSeconds) : group.Where(p => p.Meet.Outdoor).MaxBy(p => p.TotalInches);
                 }
 
                 if (group.Any(p => !p.Meet.Outdoor))
                 {
-                    indoorLifetimePr = group.Key.RunningEvent ? group.Where(p => !p.Meet.Outdoor).MinBy(p => p.TotalSeconds).First() : group.Where(p => !p.Meet.Outdoor).MaxBy(p => p.TotalInches).First();
+                    indoorLifetimePr = group.Key.RunningEvent ? group.Where(p => !p.Meet.Outdoor).MinBy(p => p.TotalSeconds) : group.Where(p => !p.Meet.Outdoor).MaxBy(p => p.TotalInches);
                 }
 
                 var lifetimePr = new LifetimePr(group.Key, outdoorLifetimePr, indoorLifetimePr);
@@ -856,12 +851,12 @@ namespace CloverleafTrack.Controllers
 
                     if (eventGroup.Any(p => p.Meet.Outdoor))
                     {
-                        outdoorSeasonPr = eventGroup.Key.RunningEvent ? eventGroup.Where(p => p.Meet.Outdoor).MinBy(p => p.TotalSeconds).FirstOrDefault() : eventGroup.Where(p => p.Meet.Outdoor).MaxBy(p => p.TotalInches).FirstOrDefault();
+                        outdoorSeasonPr = eventGroup.Key.RunningEvent ? eventGroup.Where(p => p.Meet.Outdoor).MinBy(p => p.TotalSeconds) : eventGroup.Where(p => p.Meet.Outdoor).MaxBy(p => p.TotalInches);
                     }
 
                     if (eventGroup.Any(p => !p.Meet.Outdoor))
                     {
-                        indoorSeasonPr = eventGroup.Key.RunningEvent ? eventGroup.Where(p => !p.Meet.Outdoor).MinBy(p => p.TotalSeconds).FirstOrDefault() : eventGroup.Where(p => !p.Meet.Outdoor).MaxBy(p => p.TotalInches).FirstOrDefault();
+                        indoorSeasonPr = eventGroup.Key.RunningEvent ? eventGroup.Where(p => !p.Meet.Outdoor).MinBy(p => p.TotalSeconds) : eventGroup.Where(p => !p.Meet.Outdoor).MaxBy(p => p.TotalInches);
                     }
 
                     var eventPr = new EventPr(eventGroup.Key, outdoorSeasonPr, indoorSeasonPr);
@@ -908,16 +903,16 @@ namespace CloverleafTrack.Controllers
 
             if (performance.TrackEvent.RunningEvent)
             {
-                var best = athletePerformances.MinBy(p => p.TotalSeconds).FirstOrDefault();
-                if (Math.Abs(best.TotalSeconds - performance.TotalSeconds) < .01)
+                var best = athletePerformances.MinBy(p => p.TotalSeconds);
+                if (best != null && Math.Abs(best.TotalSeconds - performance.TotalSeconds) < .01)
                 {
                     performance.IsPersonalBest = true;
                 }
             }
             else
             {
-                var best = athletePerformances.MaxBy(p => p.TotalInches).FirstOrDefault();
-                if (Math.Abs(best.TotalInches - performance.TotalInches) < .01)
+                var best = athletePerformances.MaxBy(p => p.TotalInches);
+                if (best != null && Math.Abs(best.TotalInches - performance.TotalInches) < .01)
                 {
                     performance.IsPersonalBest = true;
                 }
@@ -935,16 +930,16 @@ namespace CloverleafTrack.Controllers
 
             if (performance.TrackEvent.RunningEvent)
             {
-                var best = athletePerformances.MinBy(p => p.TotalSeconds).FirstOrDefault();
-                if (Math.Abs(best.TotalSeconds - performance.TotalSeconds) < .01)
+                var best = athletePerformances.MinBy(p => p.TotalSeconds);
+                if (best != null && Math.Abs(best.TotalSeconds - performance.TotalSeconds) < .01)
                 {
                     performance.IsSeasonBest = true;
                 }
             }
             else
             {
-                var best = athletePerformances.MaxBy(p => p.TotalInches).FirstOrDefault();
-                if (Math.Abs(best.TotalInches - performance.TotalInches) < .01)
+                var best = athletePerformances.MaxBy(p => p.TotalInches);
+                if (best != null && Math.Abs(best.TotalInches - performance.TotalInches) < .01)
                 {
                     performance.IsSeasonBest = true;
                 }

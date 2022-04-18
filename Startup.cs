@@ -1,5 +1,6 @@
 using CloverleafTrack.Data;
 using CloverleafTrack.Managers;
+using CloverleafTrack.Models.TrackEvents;
 using CloverleafTrack.Options;
 
 using Microsoft.AspNetCore.Builder;
@@ -41,6 +42,10 @@ namespace CloverleafTrack
             services.AddTransient<IPerformanceManager, PerformanceManager>();
             services.AddTransient<ISeasonManager, SeasonManager>();
             services.AddTransient<ITrackEventManager, TrackEventManager>();
+            services.AddTransient<IEventManager<RunningEvent>, RunningEventManager>();
+            services.AddTransient<IEventManager<RunningRelayEvent>, RunningRelayEventManager>();
+            services.AddTransient<IEventManager<FieldEvent>, FieldEventManager>();
+            services.AddTransient<IEventManager<FieldRelayEvent>, FieldRelayEventManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

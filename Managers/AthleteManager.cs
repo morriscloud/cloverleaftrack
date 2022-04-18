@@ -10,8 +10,6 @@ using CloverleafTrack.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-using MoreLinq;
-
 namespace CloverleafTrack.Managers
 {
     public interface IAthleteManager
@@ -81,8 +79,8 @@ namespace CloverleafTrack.Managers
                 if (performances.Any())
                 {
                     var pr = trackEvent.RunningEvent
-                        ? performances.MinBy(p => p.TotalSeconds).First()
-                        : performances.MaxBy(p => p.TotalInches).First();
+                        ? performances.MinBy(p => p.TotalSeconds)
+                        : performances.MaxBy(p => p.TotalInches);
 
                     prs.Add(pr);
                 }
@@ -114,8 +112,8 @@ namespace CloverleafTrack.Managers
                     foreach (var seasonGroup in seasonPerformances)
                     {
                         var best = trackEvent.RunningEvent
-                            ? seasonGroup.MinBy(p => p.TotalSeconds).First()
-                            : seasonGroup.MaxBy(p => p.TotalInches).First();
+                            ? seasonGroup.MinBy(p => p.TotalSeconds)
+                            : seasonGroup.MaxBy(p => p.TotalInches);
 
                         if (seasonBests.ContainsKey(seasonGroup.Key))
                         {

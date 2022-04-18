@@ -4,6 +4,7 @@ using CloverleafTrack.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CloverleafTrack.Migrations
 {
     [DbContext(typeof(CloverleafTrackDataContext))]
-    partial class CloverleafTrackDataContextModelSnapshot : ModelSnapshot
+    [Migration("20220411021511_AddFieldEventsTable")]
+    partial class AddFieldEventsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -114,9 +116,6 @@ namespace CloverleafTrack.Migrations
                     b.Property<Guid?>("FieldEventId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("FieldRelayEventId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int?>("FractionalInches")
                         .HasColumnType("int");
 
@@ -132,12 +131,6 @@ namespace CloverleafTrack.Migrations
                     b.Property<int?>("Minutes")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("RunningEventId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("RunningRelayEventId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<int?>("Seconds")
                         .HasColumnType("int");
 
@@ -150,13 +143,7 @@ namespace CloverleafTrack.Migrations
 
                     b.HasIndex("FieldEventId");
 
-                    b.HasIndex("FieldRelayEventId");
-
                     b.HasIndex("MeetId");
-
-                    b.HasIndex("RunningEventId");
-
-                    b.HasIndex("RunningRelayEventId");
 
                     b.HasIndex("TrackEventId");
 
@@ -232,12 +219,6 @@ namespace CloverleafTrack.Migrations
                     b.Property<DateTime?>("DateUpdated")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Environment")
-                        .HasColumnType("int");
-
                     b.Property<int>("Gender")
                         .HasColumnType("int");
 
@@ -250,111 +231,6 @@ namespace CloverleafTrack.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("FieldEvents");
-                });
-
-            modelBuilder.Entity("CloverleafTrack.Models.TrackEvents.FieldRelayEvent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateDeleted")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateUpdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Environment")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Gender")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("FieldRelayEvents");
-                });
-
-            modelBuilder.Entity("CloverleafTrack.Models.TrackEvents.RunningEvent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateDeleted")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateUpdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Environment")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Gender")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RunningEvents");
-                });
-
-            modelBuilder.Entity("CloverleafTrack.Models.TrackEvents.RunningRelayEvent", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateDeleted")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateUpdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Deleted")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Environment")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Gender")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RunningRelayEvents");
                 });
 
             modelBuilder.Entity("MeetSchool", b =>
@@ -406,23 +282,11 @@ namespace CloverleafTrack.Migrations
                         .WithMany("Performances")
                         .HasForeignKey("FieldEventId");
 
-                    b.HasOne("CloverleafTrack.Models.TrackEvents.FieldRelayEvent", null)
-                        .WithMany("Performances")
-                        .HasForeignKey("FieldRelayEventId");
-
                     b.HasOne("CloverleafTrack.Models.Meet", "Meet")
                         .WithMany("Performances")
                         .HasForeignKey("MeetId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("CloverleafTrack.Models.TrackEvents.RunningEvent", null)
-                        .WithMany("Performances")
-                        .HasForeignKey("RunningEventId");
-
-                    b.HasOne("CloverleafTrack.Models.TrackEvents.RunningRelayEvent", null)
-                        .WithMany("Performances")
-                        .HasForeignKey("RunningRelayEventId");
 
                     b.HasOne("CloverleafTrack.Models.TrackEvent", "TrackEvent")
                         .WithMany("Performances")
@@ -475,21 +339,6 @@ namespace CloverleafTrack.Migrations
                 });
 
             modelBuilder.Entity("CloverleafTrack.Models.TrackEvents.FieldEvent", b =>
-                {
-                    b.Navigation("Performances");
-                });
-
-            modelBuilder.Entity("CloverleafTrack.Models.TrackEvents.FieldRelayEvent", b =>
-                {
-                    b.Navigation("Performances");
-                });
-
-            modelBuilder.Entity("CloverleafTrack.Models.TrackEvents.RunningEvent", b =>
-                {
-                    b.Navigation("Performances");
-                });
-
-            modelBuilder.Entity("CloverleafTrack.Models.TrackEvents.RunningRelayEvent", b =>
                 {
                     b.Navigation("Performances");
                 });
