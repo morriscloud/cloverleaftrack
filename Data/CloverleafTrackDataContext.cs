@@ -11,6 +11,11 @@ namespace CloverleafTrack.Data
             : base(options)
         {
         }
+        
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.EnableSensitiveDataLogging();
+        }
 
         public DbSet<Athlete> Athletes { get; set; }
         public DbSet<School> Schools { get; set; }

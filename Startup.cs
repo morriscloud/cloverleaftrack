@@ -35,17 +35,17 @@ namespace CloverleafTrack
                 .AddRazorRuntimeCompilation();
 
             services.AddDbContext<CloverleafTrackDataContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("CloverleafTrackDataContext")));
+                options.UseSqlServer(Configuration.GetConnectionString("CloverleafTrackDataContext")), ServiceLifetime.Singleton);
 
-            services.AddTransient<IAthleteManager, AthleteManager>();
-            services.AddTransient<IMeetManager, MeetManager>();
-            services.AddTransient<IPerformanceManager, PerformanceManager>();
-            services.AddTransient<ISeasonManager, SeasonManager>();
-            services.AddTransient<ITrackEventManager, TrackEventManager>();
-            services.AddTransient<IEventManager<RunningEvent>, RunningEventManager>();
-            services.AddTransient<IEventManager<RunningRelayEvent>, RunningRelayEventManager>();
-            services.AddTransient<IEventManager<FieldEvent>, FieldEventManager>();
-            services.AddTransient<IEventManager<FieldRelayEvent>, FieldRelayEventManager>();
+            services.AddSingleton<IAthleteManager, AthleteManager>();
+            services.AddSingleton<IMeetManager, MeetManager>();
+            services.AddSingleton<IPerformanceManager, PerformanceManager>();
+            services.AddSingleton<ISeasonManager, SeasonManager>();
+            services.AddSingleton<ITrackEventManager, TrackEventManager>();
+            services.AddSingleton<IEventManager<RunningEvent>, RunningEventManager>();
+            services.AddSingleton<IEventManager<RunningRelayEvent>, RunningRelayEventManager>();
+            services.AddSingleton<IEventManager<FieldEvent>, FieldEventManager>();
+            services.AddSingleton<IEventManager<FieldRelayEvent>, FieldRelayEventManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -14,9 +14,8 @@ namespace CloverleafTrack.Managers
 {
     public interface IPerformanceManager
     {
-        public int Count { get; }
+        public Task<int> CountAsync();
         public List<Performance> Performances { get; }
-        public Task Reload(CancellationToken cancellationToken);
         public List<LeaderboardPerformance> GetLeaderboardPerformances(List<TrackEvent> trackEvents);
         public List<EventLeaderboardPerformance> GetEventLeaderboardPerformances(TrackEvent trackEvent);
         public List<EventLeaderboardPerformance> GetEventLeaderboardPrPerformances(TrackEvent trackEvent);
@@ -25,23 +24,36 @@ namespace CloverleafTrack.Managers
     public class PerformanceManager : IPerformanceManager
     {
         private readonly CloverleafTrackDataContext db;
+        private List<Performance> cache = new();
 
         public PerformanceManager(CloverleafTrackDataContext db)
         {
             this.db = db;
         }
 
-        public int Count => Cache.AllPerformances.Count;
+        public async Task<int> CountAsync()
+        {
+            if (!cache.Any())
+            {
+                await RefreshCacheAsync();
+            }
+
+            return cache.Count;
+        }
+        
         public List<Performance> Performances => Cache.AllPerformances;
 
-        public async Task Reload(CancellationToken cancellationToken)
+        private async Task RefreshCacheAsync()
         {
-            Cache.AllPerformances = await db.Performances
+            cache.Clear();
+            cache.TrimExcess();
+            cache = await db.Performances
+                .AsNoTracking()
                 .Include(p => p.TrackEvent)
                 .Include(p => p.Athlete)
                 .Include(p => p.Meet)
                 .ThenInclude(m => m.Season)
-                .ToListAsync(cancellationToken);
+                .ToListAsync();
         }
 
         public List<LeaderboardPerformance> GetLeaderboardPerformances(List<TrackEvent> trackEvents)

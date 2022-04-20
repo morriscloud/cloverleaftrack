@@ -67,6 +67,7 @@ namespace CloverleafTrack.Managers
         public async Task Reload(CancellationToken cancellationToken)
         {
             Cache.AllTrackEvents = await db.TrackEvents
+                .AsNoTracking()
                 .Include(t => t.Performances)
                 .ThenInclude(p => p.Athlete)
                 .Include(t => t.Performances)

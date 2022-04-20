@@ -54,13 +54,9 @@ namespace CloverleafTrack.Controllers
         [Route("reload")]
         public async Task<IActionResult> Reload(CancellationToken cancellationToken)
         {
-            await athleteManager.Reload(cancellationToken);
-            await meetManager.Reload(cancellationToken);
-            await performanceManager.Reload(cancellationToken);
-            await seasonManager.Reload(cancellationToken);
             await trackEventManager.Reload(cancellationToken);
 
-            foreach (var athlete in athleteManager.Athletes)
+            foreach (var athlete in await athleteManager.GetAthletesAsync(GraduationStatus.Graduated | GraduationStatus.InSchool))
             {
                 athleteManager.GetAthletePrs(athlete);
                 athleteManager.GetAthleteSeasonBests(athlete);
@@ -78,12 +74,12 @@ namespace CloverleafTrack.Controllers
         }
 
         [Route("")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var performanceCount = performanceManager.Count;
-            var meetCount = meetManager.Count;
-            var seasonCount = seasonManager.Count;
-            var athleteCount = athleteManager.Count;
+            var performanceCount = await performanceManager.CountAsync();
+            var meetCount = await meetManager.CountAsync();
+            var seasonCount = await seasonManager.CountAsync();
+            var athleteCount = await athleteManager.CountAsync();
 
             var viewModel = new HomeViewModel(performanceCount, meetCount, seasonCount, athleteCount, DateTime.Now);
             return View(viewModel);
@@ -139,10 +135,10 @@ namespace CloverleafTrack.Controllers
         }
 
         [Route("roster")]
-        public IActionResult Roster()
+        public async Task<IActionResult> Roster()
         {
-            var currentAthletes = athleteManager.CurrentAthletes;
-            var graduatedAthletes = athleteManager.GraduatedAthletes;
+            var currentAthletes = await athleteManager.GetAthletesAsync(GraduationStatus.InSchool);
+            var graduatedAthletes = await athleteManager.GetAthletesAsync(GraduationStatus.Graduated);
 
             return View(new RosterViewModel(currentAthletes, graduatedAthletes));
         }
@@ -156,16 +152,10 @@ namespace CloverleafTrack.Controllers
             }
 
             var splitName = name.Split('-');
-            var firstName = splitName[0];
-            var lastName = splitName[1];
+            var firstName = splitName[0].Replace("_", "-");
+            var lastName = splitName[1].Replace("_", "-");
 
-            var athlete = await db.Athletes
-                .Include(a => a.Performances)
-                .ThenInclude(p => p.TrackEvent)
-                .Include(a => a.Performances)
-                .ThenInclude(p => p.Meet)
-                .ThenInclude(m => m.Season)
-                .FirstOrDefaultAsync(a => a.FirstName == firstName && a.LastName == lastName);
+            var athlete = await athleteManager.GetAthleteByNameAsync(firstName, lastName);
 
             if (athlete == null)
             {

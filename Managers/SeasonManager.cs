@@ -4,6 +4,7 @@ using CloverleafTrack.Models;
 using Microsoft.EntityFrameworkCore;
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,33 +12,44 @@ namespace CloverleafTrack.Managers
 {
     public interface ISeasonManager
     {
-        public int Count { get; }
-        public List<Season> Seasons { get; }
-        public Task Reload(CancellationToken cancellationToken);
+        public Task<int> CountAsync();
     }
 
     public class SeasonManager : ISeasonManager
     {
         private readonly CloverleafTrackDataContext db;
+        private List<Season> cache = new();
 
         public SeasonManager(CloverleafTrackDataContext db)
         {
             this.db = db;
         }
 
-        public int Count => Cache.AllSeasons.Count;
+        public async Task<int> CountAsync()
+        {
+            if (!cache.Any())
+            {
+                await RefreshCacheAsync();
+            }
+
+            return cache.Count;
+        }
+        
         public List<Season> Seasons => Cache.AllSeasons;
 
-        public async Task Reload(CancellationToken cancellationToken)
+        private async Task RefreshCacheAsync()
         {
-            Cache.AllSeasons = await db.Seasons
+            cache.Clear();
+            cache.TrimExcess();
+            cache = await db.Seasons
+                .AsNoTracking()
                 .Include(s => s.Meets)
                 .ThenInclude(m => m.Performances)
                 .ThenInclude(p => p.Athlete)
                 .Include(s => s.Meets)
                 .ThenInclude(m => m.Performances)
                 .ThenInclude(p => p.TrackEvent)
-                .ToListAsync(cancellationToken);
+                .ToListAsync();
         }
     }
 }

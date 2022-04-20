@@ -60,7 +60,11 @@ public class FieldEventManager : IEventManager<FieldEvent>
     {
         cache.Clear();
         cache.TrimExcess();
-        cache = await db.FieldEvents.Where(fe => !fe.Deleted).OrderBy(fe => fe.SortOrder).ToListAsync();
+        cache = await db.FieldEvents
+            .AsNoTracking()
+            .Where(fe => !fe.Deleted)
+            .OrderBy(fe => fe.SortOrder)
+            .ToListAsync();
     }
 }
 
@@ -106,7 +110,11 @@ public class FieldRelayEventManager : IEventManager<FieldRelayEvent>
     {
         cache.Clear();
         cache.TrimExcess();
-        cache = await db.FieldRelayEvents.Where(fe => !fe.Deleted).OrderBy(fe => fe.SortOrder).ToListAsync();
+        cache = await db.FieldRelayEvents
+            .AsNoTracking()
+            .Where(fe => !fe.Deleted)
+            .OrderBy(fe => fe.SortOrder)
+            .ToListAsync();
     }
 }
 
@@ -152,7 +160,10 @@ public class RunningEventManager : IEventManager<RunningEvent>
     {
         cache.Clear();
         cache.TrimExcess();
-        cache = await db.RunningEvents.Where(fe => !fe.Deleted).OrderBy(fe => fe.SortOrder).ToListAsync();
+        cache = await db.RunningEvents
+            .AsNoTracking().Where(fe => !fe.Deleted)
+            .OrderBy(fe => fe.SortOrder)
+            .ToListAsync();
     }
 }
 
@@ -198,6 +209,10 @@ public class RunningRelayEventManager : IEventManager<RunningRelayEvent>
     {
         cache.Clear();
         cache.TrimExcess();
-        cache = await db.RunningRelayEvents.Where(fe => !fe.Deleted).OrderBy(fe => fe.SortOrder).ToListAsync();
+        cache = await db.RunningRelayEvents
+            .AsNoTracking()
+            .Where(fe => !fe.Deleted)
+            .OrderBy(fe => fe.SortOrder)
+            .ToListAsync();
     }
 }
