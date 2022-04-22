@@ -21,7 +21,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
-            return View(await athleteManager.GetOrderedAthletesAsync());
+            return View(await athleteManager.GetOrderedAsync());
         }
 
         public async Task<IActionResult> Details(Guid? id)
@@ -31,7 +31,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var athlete = await athleteManager.GetAthleteByIdAsync(id.Value);
+            var athlete = await athleteManager.GetByIdAsync(id.Value);
             if (athlete == null)
             {
                 return NotFound();
@@ -54,7 +54,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 return View(athlete);
             }
 
-            await athleteManager.CreateAthleteAsync(athlete);
+            await athleteManager.CreateAsync(athlete);
             return RedirectToAction(nameof(Index));
         }
 
@@ -65,7 +65,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var athlete = await athleteManager.GetAthleteByIdAsync(id.Value);
+            var athlete = await athleteManager.GetByIdAsync(id.Value);
             if (athlete == null)
             {
                 return NotFound();
@@ -90,11 +90,11 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
             try
             {
-                await athleteManager.EditAthleteAsync(id, athlete.FirstName, athlete.LastName, athlete.Gender, athlete.GraduationYear);
+                await athleteManager.EditAsync(id, athlete.FirstName, athlete.LastName, athlete.Gender, athlete.GraduationYear);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!athleteManager.AthleteExists(athlete.Id))
+                if (!athleteManager.CheckExistenceById(athlete.Id))
                 {
                     return NotFound();
                 }
@@ -111,7 +111,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            var athlete = await athleteManager.GetAthleteByIdAsync(id.Value);
+            var athlete = await athleteManager.GetByIdAsync(id.Value);
             if (athlete == null)
             {
                 return NotFound();
@@ -124,7 +124,7 @@ namespace CloverleafTrack.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            await athleteManager.DeleteAthleteAsync(id);
+            await athleteManager.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }

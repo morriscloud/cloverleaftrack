@@ -1,40 +1,37 @@
-﻿using CloverleafTrack.Data;
-using CloverleafTrack.Models;
+﻿using CloverleafTrack.Models;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
+using CloverleafTrack.Managers;
 
 namespace CloverleafTrack.Areas.Admin.Controllers
 {
     [Area("Admin")]
     public class SeasonsController : Controller
     {
-        private readonly CloverleafTrackDataContext db;
+        private readonly ISeasonManager seasonManager;
 
-        public SeasonsController(CloverleafTrackDataContext db)
+        public SeasonsController(ISeasonManager seasonManager)
         {
-            this.db = db;
+            this.seasonManager = seasonManager;
         }
 
         public async Task<IActionResult> Index()
         {
-            return View(await db.Seasons.OrderBy(s => s.Name).ToListAsync());
+            return View(await seasonManager.GetAsync());
         }
 
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null)
+            if (!id.HasValue)
             {
                 return NotFound();
             }
 
-            var season = await db.Seasons
-                .FirstOrDefaultAsync(s => s.Id == id);
-
+            var season = await seasonManager.GetByIdAsync(id.Value);
             if (season == null)
             {
                 return NotFound();
@@ -57,21 +54,18 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 return View(season);
             }
 
-            season.Id = Guid.NewGuid();
-            db.Add(season);
-            await db.SaveChangesAsync();
+            await seasonManager.CreateAsync(season);
             return RedirectToAction(nameof(Index));
         }
 
         public async Task<IActionResult> Edit(Guid? id)
         {
-            if (id == null)
+            if (!id.HasValue)
             {
                 return NotFound();
             }
 
-            var season = await db.Seasons.FindAsync(id);
-
+            var season = await seasonManager.GetByIdAsync(id.Value);
             if (season == null)
             {
                 return NotFound();
@@ -96,12 +90,11 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
             try
             {
-                db.Update(season);
-                await db.SaveChangesAsync();
+                await seasonManager.EditAsync(id, season.Name);
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!SeasonExists(season.Id))
+                if (!seasonManager.CheckExistenceById(season.Id))
                 {
                     return NotFound();
                 }
@@ -113,14 +106,12 @@ namespace CloverleafTrack.Areas.Admin.Controllers
 
         public async Task<IActionResult> Delete(Guid? id)
         {
-            if (id == null)
+            if (!id.HasValue)
             {
                 return NotFound();
             }
 
-            var season = await db.Seasons
-                .FirstOrDefaultAsync(s => s.Id == id);
-
+            var season = await seasonManager.GetByIdAsync(id.Value);
             if (season == null)
             {
                 return NotFound();
@@ -133,15 +124,8 @@ namespace CloverleafTrack.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var season = await db.Seasons.FindAsync(id);
-            db.Seasons.Remove(season);
-            await db.SaveChangesAsync();
+            await seasonManager.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool SeasonExists(Guid id)
-        {
-            return db.Seasons.Any(s => s.Id == id);
         }
     }
 }

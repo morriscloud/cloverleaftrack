@@ -17,16 +17,16 @@ namespace CloverleafTrack.Managers
     public interface IAthleteManager
     {
         public Task<int> CountAsync();
-        public Task<ImmutableList<Athlete>> GetOrderedAthletesAsync();
-        public Task<ImmutableList<Athlete>> GetAthletesAsync(GraduationStatus graduationStatus);
-        public Task<Athlete> GetAthleteByIdAsync(Guid id);
-        public Task<Athlete> GetAthleteByNameAsync(string firstName, string lastName);
+        public Task<ImmutableList<Athlete>> GetOrderedAsync();
+        public Task<ImmutableList<Athlete>> GetAsync(GraduationStatus graduationStatus);
+        public Task<Athlete> GetByIdAsync(Guid id);
+        public Task<Athlete> GetByNameAsync(string firstName, string lastName);
         public List<Performance> GetAthletePrs(Athlete athlete);
         public Dictionary<Season, List<Performance>> GetAthleteSeasonBests(Athlete athlete);
-        public Task CreateAthleteAsync(Athlete athlete);
-        public Task EditAthleteAsync(Guid id, string firstName, string lastName, bool gender, int graduationYear);
-        public Task DeleteAthleteAsync(Guid id);
-        public bool AthleteExists(Guid id);
+        public Task CreateAsync(Athlete athlete);
+        public Task EditAsync(Guid id, string firstName, string lastName, bool gender, int graduationYear);
+        public Task DeleteAsync(Guid id);
+        public bool CheckExistenceById(Guid id);
     }
 
     public class AthleteManager : IAthleteManager
@@ -55,7 +55,7 @@ namespace CloverleafTrack.Managers
             return cache.Count;
         }
 
-        public async Task<ImmutableList<Athlete>> GetOrderedAthletesAsync()
+        public async Task<ImmutableList<Athlete>> GetOrderedAsync()
         {
             if (!cache.Any())
             {
@@ -69,7 +69,7 @@ namespace CloverleafTrack.Managers
                 .ToImmutableList();
         }
 
-        public async Task<ImmutableList<Athlete>> GetAthletesAsync(GraduationStatus graduationStatus)
+        public async Task<ImmutableList<Athlete>> GetAsync(GraduationStatus graduationStatus)
         {
             if (!cache.Any())
             {
@@ -96,7 +96,7 @@ namespace CloverleafTrack.Managers
                 .ToImmutableList();
         }
 
-        public async Task<Athlete> GetAthleteByIdAsync(Guid id)
+        public async Task<Athlete> GetByIdAsync(Guid id)
         {
             if (!cache.Any())
             {
@@ -106,7 +106,7 @@ namespace CloverleafTrack.Managers
             return cache.FirstOrDefault(a => a.Id == id);
         }
 
-        public async Task<Athlete> GetAthleteByNameAsync(string firstName, string lastName)
+        public async Task<Athlete> GetByNameAsync(string firstName, string lastName)
         {
             if (!cache.Any())
             {
@@ -185,7 +185,7 @@ namespace CloverleafTrack.Managers
             return seasonBests;
         }
 
-        public async Task CreateAthleteAsync(Athlete athlete)
+        public async Task CreateAsync(Athlete athlete)
         {
             athlete.Id = Guid.NewGuid();
             db.Athletes.Add(athlete);
@@ -194,7 +194,7 @@ namespace CloverleafTrack.Managers
             await RefreshCacheAsync();
         }
 
-        public async Task EditAthleteAsync(Guid id, string firstName, string lastName, bool gender, int graduationYear)
+        public async Task EditAsync(Guid id, string firstName, string lastName, bool gender, int graduationYear)
         {
             var athlete = await db.Athletes.FindAsync(id);
             if (athlete != null)
@@ -211,16 +211,16 @@ namespace CloverleafTrack.Managers
             }
         }
 
-        public async Task DeleteAthleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
-            var athlete = await GetAthleteByIdAsync(id);
+            var athlete = await GetByIdAsync(id);
             db.Athletes.Remove(athlete);
             await db.SaveChangesAsync();
             db.Entry(athlete).State = EntityState.Detached;
             await RefreshCacheAsync();
         }
 
-        public bool AthleteExists(Guid id)
+        public bool CheckExistenceById(Guid id)
         {
             return cache.Any(a => a.Id == id);
         }

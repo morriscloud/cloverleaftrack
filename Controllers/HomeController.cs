@@ -56,7 +56,7 @@ namespace CloverleafTrack.Controllers
         {
             await trackEventManager.Reload(cancellationToken);
 
-            foreach (var athlete in await athleteManager.GetAthletesAsync(GraduationStatus.Graduated | GraduationStatus.InSchool))
+            foreach (var athlete in await athleteManager.GetAsync(GraduationStatus.Graduated | GraduationStatus.InSchool))
             {
                 athleteManager.GetAthletePrs(athlete);
                 athleteManager.GetAthleteSeasonBests(athlete);
@@ -137,8 +137,8 @@ namespace CloverleafTrack.Controllers
         [Route("roster")]
         public async Task<IActionResult> Roster()
         {
-            var currentAthletes = await athleteManager.GetAthletesAsync(GraduationStatus.InSchool);
-            var graduatedAthletes = await athleteManager.GetAthletesAsync(GraduationStatus.Graduated);
+            var currentAthletes = await athleteManager.GetAsync(GraduationStatus.InSchool);
+            var graduatedAthletes = await athleteManager.GetAsync(GraduationStatus.Graduated);
 
             return View(new RosterViewModel(currentAthletes, graduatedAthletes));
         }
@@ -155,7 +155,7 @@ namespace CloverleafTrack.Controllers
             var firstName = splitName[0].Replace("_", "-");
             var lastName = splitName[1].Replace("_", "-");
 
-            var athlete = await athleteManager.GetAthleteByNameAsync(firstName, lastName);
+            var athlete = await athleteManager.GetByNameAsync(firstName, lastName);
 
             if (athlete == null)
             {
@@ -172,22 +172,18 @@ namespace CloverleafTrack.Controllers
         [Route("meets")]
         public async Task<IActionResult> Meets()
         {
-            var seasons = await db.Seasons
-                .Include(s => s.Meets)
-                .ThenInclude(m => m.Performances)
-                .OrderByDescending(s => s.Name)
-                .ToListAsync();
+            var seasons = await seasonManager.GetAsync();
 
-            var objectModel = new List<Tuple<Season, List<Meet>, List<Meet>>>();
+            var seasonMeets = new List<SeasonMeets>();
             foreach (var season in seasons)
             {
                 var indoorMeets = season.Meets.Where(m => !m.Outdoor).ToList();
                 var outdoorMeets = season.Meets.Where(m => m.Outdoor).ToList();
-
-                objectModel.Add(new Tuple<Season, List<Meet>, List<Meet>>(season, indoorMeets, outdoorMeets));
+                
+                seasonMeets.Add(new SeasonMeets(season, indoorMeets, outdoorMeets));
             }
 
-            var viewModel = new MeetsViewModel(objectModel);
+            var viewModel = new MeetsViewModel(seasonMeets);
             return View(viewModel);
         }
 

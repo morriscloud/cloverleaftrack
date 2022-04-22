@@ -23,17 +23,17 @@
     </h1>
 </div>
 
-@foreach (var season in Model.Seasons.Where(s => s.Item2.Count > 0 || s.Item3.Count > 0))
+@foreach (var seasonMeet in Model.Seasons.Where(s => s.OutdoorMeets.Count > 0 || s.IndoorMeets.Count > 0))
 {
 <div class="shadow rounded bg-light p-3 pb-0 mb-1">
     <h3 class="border-bottom pb-1">
-        @season.Item1.Name Season
+        @seasonMeet.Season.Name Season
     </h3>
-    @if (season.Item3.Count > 0 && season.Item3.Any(m => m.Performances.Count > 0))
+    @if (seasonMeet.OutdoorMeets.Count > 0 && seasonMeet.OutdoorMeets.Any(m => m.Performances.Count > 0))
     {
-        <h4 class="border-bottom pb-1">@season.Item1.Name Outdoor Meets</h4>
+        <h4 class="border-bottom pb-1">@seasonMeet.Season.Name Outdoor Meets</h4>
         <table class="table table-hover table-striped table-sm event-performances">
-            <caption>@season.Item1.Name Outdoor Meets</caption>
+            <caption>@seasonMeet.Season.Name Outdoor Meets</caption>
             <thead class="table-dark">
                 <tr>
                     <th class="col-9">Meet</th>
@@ -41,7 +41,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var outdoorMeet in season.Item3.Where(m => m.Performances.Count > 0).OrderByDescending(m => m.Date))
+                @foreach (var outdoorMeet in seasonMeet.OutdoorMeets.Where(m => m.Performances.Count > 0).OrderByDescending(m => m.Date))
                 {
                     <tr>
                         <td class="text-nowrap align-middle">
@@ -55,11 +55,11 @@
             </tbody>
         </table>
     }
-    @if (season.Item2.Count > 0 && season.Item2.Any(m => m.Performances.Count > 0))
+    @if (seasonMeet.IndoorMeets.Count > 0 && seasonMeet.IndoorMeets.Any(m => m.Performances.Count > 0))
     {
-        <h4 class="border-bottom pb-1">@season.Item1.Name Indoor Meets</h4>
+        <h4 class="border-bottom pb-1">@seasonMeet.Season.Name Indoor Meets</h4>
         <table class="table table-hover table-striped table-sm event-performances">
-            <caption>@season.Item1.Name Indoor Meets</caption>
+            <caption>@seasonMeet.Season.Name Indoor Meets</caption>
             <thead class="table-dark">
                 <tr>
                     <th class="col-9">Meet</th>
@@ -67,7 +67,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var indoorMeet in season.Item2.Where(m => m.Performances.Count > 0).OrderByDescending(m => m.Date))
+                @foreach (var indoorMeet in seasonMeet.IndoorMeets.Where(m => m.Performances.Count > 0).OrderByDescending(m => m.Date))
                 {
                     <tr>
                         <td class="text-nowrap align-middle">
