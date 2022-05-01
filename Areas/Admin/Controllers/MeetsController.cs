@@ -8,55 +8,46 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using CloverleafTrack.Managers;
 
 namespace CloverleafTrack.Areas.Admin.Controllers
 {
     [Area("Admin")]
     public class MeetsController : Controller
     {
-        private readonly CloverleafTrackDataContext db;
+        private readonly IMeetManager meetManager;
+        private readonly ISeasonManager seasonManager;
 
-        public MeetsController(CloverleafTrackDataContext db)
+        public MeetsController(IMeetManager meetManager, ISeasonManager seasonManager)
         {
-            this.db = db;
+            this.meetManager = meetManager;
+            this.seasonManager = seasonManager;
         }
 
         public async Task<IActionResult> Index()
-        {
-            var cloverleafTrackDataContext = db.Meets
-                .Include(m => m.Season)
-                .Include(m => m.MeetResult)
-                .OrderByDescending(m => m.Date);
-
-            return View(await cloverleafTrackDataContext.ToListAsync());
+        {       
+            return View(await meetManager.GetAsync());
         }
 
         public async Task<IActionResult> Done(Guid? id)
         {
-            if (id == null)
+            if (!id.HasValue)
             {
                 return NotFound();
             }
 
-            var meet = await db.Meets.FirstOrDefaultAsync(m => m.Id == id);
-            meet.AllResultsIn = true;
-            await db.SaveChangesAsync();
-
+            await meetManager.DoneAsync(id.Value);
             return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> Details(Guid? id)
         {
-            if (id == null)
+            if (!id.HasValue)
             {
                 return NotFound();
             }
 
-            var meet = await db.Meets
-                .Include(m => m.Season)
-                .Include(m => m.MeetResult)
-                .FirstOrDefaultAsync(m => m.Id == id);
-
+            var meet = await meetManager.GetByIdAsync(id.Value);
             if (meet == null)
             {
                 return NotFound();
@@ -65,9 +56,10 @@ namespace CloverleafTrack.Areas.Admin.Controllers
             return View(meet);
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData[nameof(Meet.SeasonId)] = new SelectList(db.Seasons.OrderBy(s => s.Name), nameof(Season.Id), nameof(Season.Name));
+            var seasons = await seasonManager.GetAsync();
+            ViewData[nameof(Meet.SeasonId)] = new SelectList(seasons, nameof(Season.Id), nameof(Season.Name));
 
             return View();
         }
@@ -84,7 +76,8 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData[nameof(Meet.SeasonId)] = new SelectList(db.Seasons.OrderBy(s => s.Name), nameof(Season.Id), nameof(Season.Name), meet.SeasonId);
+            var seasons = await seasonManager.GetAsync();
+            ViewData[nameof(Meet.SeasonId)] = new SelectList(seasons, nameof(Season.Id), nameof(Season.Name), meet.SeasonId);
 
             return View(meet);
         }
@@ -102,7 +95,8 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 return NotFound();
             }
 
-            ViewData[nameof(Meet.SeasonId)] = new SelectList(db.Seasons.OrderBy(s => s.Name), nameof(Season.Id), nameof(Season.Name), meet.SeasonId);
+            var seasons = await seasonManager.GetAsync();
+            ViewData[nameof(Meet.SeasonId)] = new SelectList(seasons, nameof(Season.Id), nameof(Season.Name), meet.SeasonId);
 
             return View(meet);
         }
@@ -135,7 +129,8 @@ namespace CloverleafTrack.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            ViewData[nameof(Meet.SeasonId)] = new SelectList(db.Seasons.OrderBy(s => s.Name), nameof(Season.Id), nameof(Season.Name), meet.SeasonId);
+            var seasons = await seasonManager.GetAsync();
+            ViewData[nameof(Meet.SeasonId)] = new SelectList(seasons, nameof(Season.Id), nameof(Season.Name), meet.SeasonId);
 
             return View(meet);
         }

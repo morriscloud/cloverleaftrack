@@ -214,10 +214,13 @@ namespace CloverleafTrack.Managers
         public async Task DeleteAsync(Guid id)
         {
             var athlete = await GetByIdAsync(id);
-            db.Athletes.Remove(athlete);
-            await db.SaveChangesAsync();
-            db.Entry(athlete).State = EntityState.Detached;
-            await RefreshCacheAsync();
+            if (athlete != null)
+            {
+                db.Athletes.Remove(athlete);
+                await db.SaveChangesAsync();
+                db.Entry(athlete).State = EntityState.Detached;
+                await RefreshCacheAsync();
+            }
         }
 
         public bool CheckExistenceById(Guid id)
